@@ -24,7 +24,7 @@ void pre_auton()	//You must return from this function or the autonomous and user
 //drive()
 int L_POWER = 0;								//left drive power in drive()
 int R_POWER = 0;								//right drive power in drive()
-int MAX_POWER = 100;						//maximun power to motor - 127 is max
+int MAX_POWER = 100;						//maximum power to motor - 127 is max
 float DRIVE_SENSITIVITY = 0.8;		//coefficient = decrease joystick sensitivity
 int DEADBAND = 15;							//Joystick seldom 0 when off so this is the value to ignore joystick 'noise' below
 int ARM_POWER = 0;							//power to apply to arm if needed
@@ -101,9 +101,10 @@ task drive(){
 		motor[L_Front]= motor[L_Rear]=L_POWER;
 		motor[R_Front]= motor[R_Rear]=R_POWER;
 	}//end while
-
 }//end drive
-	task arm(){
+
+task arm(){
+	while(true){
 		//ARM HEIGHT
 		if(abs(vexRT[Ch3])> DEADBAND)
 		{
@@ -120,48 +121,47 @@ task drive(){
 			else {
 				ARM_POWER = 0;
 			}
-	}//end arm
+	}//end while
+}//end arm
 
 	//flip cap
 void flipCap(void){
 		//stop tasks that may interfere with actions
-			stopTask(arm);
-			stopTask(drive);
-			//pefform flip by..
-			motor[L_Arm]=motor[R_Arm]=flipArmSpeed;	//lift claw
-			wait1Msec(flipArmTime);		//wait
-			motor[L_Front]= motor[L_Rear]=flipDriveSpeed;	//drive forward to push cap
-			motor[R_Front]= motor[R_Rear]=flipDriveSpeed;
-			wait1Msec(flipDriveTime);	//wait
-			motor[L_Front]= motor[L_Rear]=0;	//stop
-			motor[R_Front]= motor[R_Rear]=0;
-			motor[L_Arm]=motor[R_Arm]=0;
-			// lower claw TBD (added 10-23)
-			motor[L_Arm]=motor[R_Arm]=flipArmSpeed * -1 ;	//lower claw
-			wait1Msec((flipArmTime + flipDriveTime) * 0.8);	//wait - probably too long
-			motor[L_Arm]=motor[R_Arm]=0;
-			//re-start tasks
-			startTask(arm);
-			startTask(drive);
+		stopTask(arm);
+		stopTask(drive);
+		//perform flip by..
+		motor[L_Arm]=motor[R_Arm]=flipArmSpeed;	//lift claw
+		wait1Msec(flipArmTime);		//wait
+		motor[L_Front]= motor[L_Rear]=flipDriveSpeed;	//drive forward to push cap
+		motor[R_Front]= motor[R_Rear]=flipDriveSpeed;
+		wait1Msec(flipDriveTime);	//wait
+		motor[L_Front]= motor[L_Rear]=0;	//stop
+		motor[R_Front]= motor[R_Rear]=0;
+		motor[L_Arm]=motor[R_Arm]=0;
+		// lower claw TBD (added 10-23)
+		motor[L_Arm]=motor[R_Arm]=flipArmSpeed * -1 ;	//lower claw
+		wait1Msec((flipArmTime + flipDriveTime) * 0.8);	//wait - probably too long
+		motor[L_Arm]=motor[R_Arm]=0;
+		//re-start tasks
+		startTask(arm);
+		startTask(drive);
 	}
 
-	//position arm for placing cap on 36" post
-	void highCap(){
-		do{
-			motor[L_Arm]=motor[R_Arm]=flipArmSpeed;	//lift claw
-		}while(SensorValue(Arm_Angle) > armCapHigh);
-
-		motor[L_Arm]=motor[R_Arm]=ARM_POWER;	//hold claw
+//position arm for placing cap on 36" post
+void highCap(){
+	do{
+		motor[L_Arm]=motor[R_Arm]=flipArmSpeed;	//lift claw
+	}while(SensorValue(Arm_Angle) > armCapHigh);
+	motor[L_Arm]=motor[R_Arm]=ARM_POWER;	//hold claw
 	} //end highCap
 
 	//position arm for placing cap on 24" post
-	void lowCap(){
-		do{
-			motor[L_Arm]=motor[R_Arm]=flipArmSpeed;	//lift claw
-		}while(SensorValue(Arm_Angle) > armCapLow);
-
-		motor[L_Arm]=motor[R_Arm]=ARM_POWER;	//hold claw
-	}	//end lowCap()
+void lowCap(){
+	do{
+		motor[L_Arm]=motor[R_Arm]=flipArmSpeed;	//lift claw
+	}while(SensorValue(Arm_Angle) > armCapLow);
+	motor[L_Arm]=motor[R_Arm]=ARM_POWER;	//hold claw
+}	//end lowCap()
 
 task autonomous()
 {
@@ -172,10 +172,9 @@ task usercontrol()
 {
 	startTask(drive);
 	startTask(arm);
-  while (true)
-  {
+	while (true){
 		if(vexRT[Btn7L]==1){flipCap();}
 		if(vexRT[Btn7U]==1){highCap();}
 		if(vexRT[Btn7D]==1){lowCap();}
-  }//end while
+	}//end while
 }//end main
