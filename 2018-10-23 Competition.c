@@ -12,7 +12,7 @@
 
 //VEX COMPETITION INCLUDES
 #pragma platform(VEX2)//VEX cortex platform
-#pragma competitionControl(Competition)	// Select Download method as "competition"
+//#pragma competitionControl(Competition)	// Select Download method as "competition"
 #include "Vex_Competition_Includes.c"	//do not modify
 
 void pre_auton()	//You must return from this function or the autonomous and usercontrol tasks will not be started.
@@ -25,7 +25,7 @@ void pre_auton()	//You must return from this function or the autonomous and user
 int L_POWER = 0;								//left drive power in drive()
 int R_POWER = 0;								//right drive power in drive()
 int MAX_POWER = 100;						//maximum power to motor - 127 is max
-float DRIVE_SENSITIVITY = 0.8;		//coefficient = decrease joystick sensitivity
+float DRIVE_SENSITIVITY = 0.5;		//coefficient = decrease joystick sensitivity
 int DEADBAND = 15;							//Joystick seldom 0 when off so this is the value to ignore joystick 'noise' below
 int ARM_POWER = 0;							//power to apply to arm if needed
 float ARM_SENSITIVITY = 0.8;		//slow arm movements
@@ -35,8 +35,9 @@ int flipArmTime = 250;		//time lift arm before drive foward
 int flipArmSpeed = 50;		//power to lift arm
 int flipDriveTime = 150;	//time before driving foward
 int flipDriveSpeed = 50;	//drive power
-int armCapHigh = 1700;		// TBD - value of Arm_Angle potentioneter for placing high caps
-int armCapLow = 2500;			//TBD - value of Arm_Angle potentioneter for placing high caps
+int armMax = 2200;
+int armCapHigh = 2000;		// TBD - value of Arm_Angle potentioneter for placing high caps
+int armCapLow = 1500;			//TBD - value of Arm_Angle potentioneter for placing high caps
 
 // autonomous driving variables
 int pause1 = 300;
@@ -106,7 +107,7 @@ task drive(){
 task arm(){
 	while(true){
 		//ARM HEIGHT
-		if(abs(vexRT[Ch3])> DEADBAND)
+		if(abs(vexRT[Ch3])> DEADBAND && SensorValue(Arm_Angle) < armMax)
 		{
 			motor[L_Arm]=motor[R_Arm]=vexRT[Ch3] * ARM_SENSITIVITY;
 		}
@@ -115,7 +116,7 @@ task arm(){
 			motor[L_Arm]=motor[R_Arm]=ARM_POWER;
 		}
 
-		if(SensorValue(Arm_Angle) < 3500){ //arm is raised (3700 is full down, ~1700 up)
+		if(SensorValue(Arm_Angle) > armCapLow / 4){ //arm is raised (3700 is full down, ~1700 up)
 				ARM_POWER = 10;
 			}
 			else {
@@ -148,33 +149,58 @@ void flipCap(void){
 	}
 
 //position arm for placing cap on 36" post
-void highCap(){
-	do{
-		motor[L_Arm]=motor[R_Arm]=flipArmSpeed;	//lift claw
-	}while(SensorValue(Arm_Angle) > armCapHigh);
-	motor[L_Arm]=motor[R_Arm]=ARM_POWER;	//hold claw
-	} //end highCap
+task liftCap(){
+	while(true){
+		if(vexRT[Btn7U]==1){
+			stopTask(arm);
+			while(SensorValue(Arm_Angle) < armCapHigh){
+				motor[L_Arm]=motor[R_Arm]=40;}	//lift claw
+			motor[L_Arm]=motor[R_Arm]=0;
+			startTask(arm);
+		}//lift claw
 
-	//position arm for placing cap on 24" post
-void lowCap(){
-	do{
-		motor[L_Arm]=motor[R_Arm]=flipArmSpeed;	//lift claw
-	}while(SensorValue(Arm_Angle) > armCapLow);
-	motor[L_Arm]=motor[R_Arm]=ARM_POWER;	//hold claw
-}	//end lowCap()
+		if(vexRT[Btn7D]==1){
+			stopTask(arm);
+			while(SensorValue(Arm_Angle) < armCapLow){
+				motor[L_Arm]=motor[R_Arm]=40;}	//lift claw
+			motor[L_Arm]=motor[R_Arm]=0;
+			startTask(arm);
+		}//end btn 7d
+	}//end while
+}//end liftCap
+
+
 
 task autonomous()
 {
-  AutonomousCodePlaceholderForTesting();
+	tDrive(0,0,0); //timed driving distance: Left power, Right power, Time (ms)
+	eDrive(0,0,0);//encoder driving distance: Left power, Right power, Time (ms)
 }
 
 task usercontrol()
 {
 	startTask(drive);
 	startTask(arm);
+	startTask(liftCap);
 	while (true){
 		if(vexRT[Btn7L]==1){flipCap();}
-		if(vexRT[Btn7U]==1){highCap();}
-		if(vexRT[Btn7D]==1){lowCap();}
+
+		//micro-drive
+		if(vexRT[Btn8U]==1){//straight
+			stopTask(drive);
+			tDrive(30,30,150);
+			startTask(drive);}
+		if(vexRT[Btn8D]==1){	//reverse
+			stopTask(drive);
+			tDrive(-30,-30,150);
+			startTask(drive);}
+		if(vexRT[Btn8L]==1){	//left
+			stopTask(drive);
+			tDrive(30,30,150);
+			startTask(drive);}
+		if(vexRT[Btn8R]==1){	//right
+			stopTask(drive);
+			tDrive(30,-30,150);
+			startTask(drive);}
 	}//end while
 }//end main
