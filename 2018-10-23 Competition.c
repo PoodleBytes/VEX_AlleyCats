@@ -17,7 +17,7 @@
 
 void pre_auton()	//You must return from this function or the autonomous and usercontrol tasks will not be started.
 {
-  bStopTasksBetweenModes = true;
+	bStopTasksBetweenModes = true;
 }
 
 /*				VARIABLES 	*/
@@ -31,56 +31,58 @@ int ARM_POWER = 0;							//power to apply to arm if needed
 float ARM_SENSITIVITY = 0.5;		//slow arm movements
 
 //xxxCap() variables - flipArm OK 10-22 (250,50,150,50)
-int flipArmTime = 250;		//time lift arm before drive foward
-int flipArmSpeed = 50;		//power to lift arm
-int flipDriveTime = 150;	//time before driving foward
-int flipDriveSpeed = 50;	//drive power
-int armMax = 2100;
-int armCapHigh = 2000;		// TBD - value of Arm_Angle potentioneter for placing high caps
-int armCapLow = 1380;			//TBD - value of Arm_Angle potentioneter for placing high caps
+int FLIP_ARM_TIME = 250;		//time lift arm before drive foward
+int FLIP_ARM_SPEED = 50;		//power to lift arm
+int FLIP_DRIVE_TIME = 150;	//time before driving foward
+int FLIP_DRIVE_SPEED = 50;	//drive power
+int ARM_MAX = 2100;				//maximum height of arm (3500 max before risk damaging Arm_Angle potentiometer)
+int ARM_CAP_HIGH = 2000;		// TBD - value of Arm_Angle potentioneter for placing high caps
+int ARM_CAP_LOW = 1380;			//TBD - value of Arm_Angle potentioneter for placing high caps
 
 // autonomous driving variables
-int pause1 = 300;
-int iBrake = 50;
+int DRIVE_PAUSE = 300;
+int BRAKE_TIME = 50;
 
 /*			FUNCTIONS		*/
-
-//	drive to distance using encoder ticks
+//	DRIVE BASED ON ENCODER 'TICKS'
 void eDrive(int l, int r, int e){
+	//reset encoders
 	resetMotorEncoder(R_Front);
 	resetMotorEncoder(L_Front);
-	wait1Msec(pause1);
-	while(abs(getMotorEncoder(R_Front)) < e)  {
+
+	//drive & brake
+	wait1Msec(DRIVE_PAUSE);		//brief pause
+	while(abs(getMotorEncoder(R_Front)) < e)  {		//drive until encoder 'ticks' = e
 		motor[R_Rear] = motor[R_Front]=r;
 		motor[L_Rear] = motor[L_Front]=l;}
-	wait1Msec(iBrake);
-	motor[R_Rear] = motor[R_Front]=0;
+	wait1Msec(BRAKE_TIME);
+	motor[R_Rear] = motor[R_Front]=0;		//shut motors off
 	motor[L_Rear] = motor[L_Front]=0;
-	wait1Msec(iBrake);
-	motor[R_Rear] = motor[R_Front]=r *-.5;
+	wait1Msec(BRAKE_TIME);
+	motor[R_Rear] = motor[R_Front]=r *-.5;	//briefly reversing motors acts like a brake
 	motor[L_Rear] = motor[L_Front]=l * -.5;
-	wait1Msec(iBrake);
+	wait1Msec(BRAKE_TIME/2);					//shut motors off
 	motor[R_Rear] = motor[R_Front]=0;
 	motor[L_Rear] = motor[L_Front]=0;
 }//end eDrive
 
-//timed drive
+//TIMED DRIVE
 void tDrive(int l, int r, int t){
-	wait1Msec(pause1);
+	wait1Msec(DRIVE_PAUSE);
 	motor[R_Rear] = motor[R_Front]=r;
 	motor[L_Rear] = motor[L_Front]=l;
 	wait1Msec(t);
 	motor[R_Rear] = motor[R_Front]=0;
 	motor[L_Rear] = motor[L_Front]=0;
-	wait1Msec(iBrake);
+	wait1Msec(BRAKE_TIME);
 	motor[R_Rear] = motor[R_Front]=r *-.5;
 	motor[L_Rear] = motor[L_Front]=l * -.5;
-	wait1Msec(iBrake);
+	wait1Msec(BRAKE_TIME/2);
 	motor[R_Rear] = motor[R_Front]=0;
 	motor[L_Rear] = motor[L_Front]=0;
 }//end tDrive
 
-//drive control
+//DRIVE CONTROL
 task drive(){
 	while(true){
 		// calculate arcade drive motor[ power
@@ -104,10 +106,10 @@ task drive(){
 	}//end while
 }//end drive
 
+	//ARM HEIGHT
 task arm(){
 	while(true){
-		//ARM HEIGHT
-		if(abs(vexRT[Ch3])> DEADBAND && SensorValue(Arm_Angle) < armMax){//limit height
+		if(abs(vexRT[Ch3])> DEADBAND && SensorValue(Arm_Angle) < ARM_MAX){//limit height
 			motor[L_Arm]=motor[R_Arm]=vexRT[Ch3] * ARM_SENSITIVITY;
 		}
 		else if(vexRT[Ch3] < DEADBAND * -1){
@@ -117,91 +119,98 @@ task arm(){
 			motor[L_Arm]=motor[R_Arm]=ARM_POWER;
 		}
 
-		if(SensorValue(Arm_Angle) > armCapLow / 4){ //arm is in air - keep from falling
-				ARM_POWER = 10;
-			}
-			else {
-				ARM_POWER = 0;
-			}
+		//if arm is in air - keep from falling
+		if(SensorValue(Arm_Angle) > ARM_CAP_LOW / 4){
+			ARM_POWER = 10;
+		}
+		else {
+			ARM_POWER = 0;
+		}
+
 	}//end while
 }//end arm
 
-	//flip cap
+//flip cap
 void flipCap(void){
-		//stop tasks that may interfere with actions
-		stopTask(arm);
-		stopTask(drive);
-		//perform flip by..
-		motor[L_Arm]=motor[R_Arm]=flipArmSpeed;	//lift claw
-		wait1Msec(flipArmTime);		//wait
-		motor[L_Front]= motor[L_Rear]=flipDriveSpeed;	//drive forward to push cap
-		motor[R_Front]= motor[R_Rear]=flipDriveSpeed;
-		wait1Msec(flipDriveTime);	//wait
-		motor[L_Front]= motor[L_Rear]=0;	//stop
-		motor[R_Front]= motor[R_Rear]=0;
-		motor[L_Arm]=motor[R_Arm]=0;
-		// lower claw TBD (added 10-23)
-		motor[L_Arm]=motor[R_Arm]=flipArmSpeed * -1 ;	//lower claw
-		wait1Msec((flipArmTime + flipDriveTime) * 0.8);	//wait - probably too long
-		motor[L_Arm]=motor[R_Arm]=0;
-		//re-start tasks
-		startTask(arm);
-		startTask(drive);
-	}
+	//stop tasks that may interfere with actions
+	stopTask(arm);
+	stopTask(drive);
+
+	//perform flip by..
+	motor[L_Arm]=motor[R_Arm]=FLIP_ARM_SPEED;	//lift claw
+	wait1Msec(FLIP_ARM_TIME);		//wait
+	motor[L_Front]= motor[L_Rear]=FLIP_DRIVE_SPEED;	//drive forward to push cap
+	motor[R_Front]= motor[R_Rear]=FLIP_DRIVE_SPEED;
+	wait1Msec(FLIP_DRIVE_TIME);	//wait
+	motor[L_Front]= motor[L_Rear]=0;	//stop
+	motor[R_Front]= motor[R_Rear]=0;
+	motor[L_Arm]=motor[R_Arm]=0;
+
+	// lower claw TBD (added 10-23)
+	motor[L_Arm]=motor[R_Arm]=FLIP_ARM_SPEED * -0.25 ;	//slowly lower claw
+	wait1Msec((FLIP_ARM_TIME + FLIP_DRIVE_TIME));	//wait - probably too long
+	motor[L_Arm]=motor[R_Arm]=0;
+
+	//re-start tasks
+	startTask(arm);
+	startTask(drive);
+}//end flipCap()
 
 //position arm for placing cap on 36" post
 task liftCap(){
 	while(true){
-		if(vexRT[Btn5U]==1){		//lift cap for 36" post
+		//lift cap for 36" post
+		if(vexRT[Btn5U]==1){
 			stopTask(arm);
-			while(SensorValue(Arm_Angle) < armCapHigh){
+			while(SensorValue(Arm_Angle) < ARM_CAP_HIGH){
 				motor[L_Arm]=motor[R_Arm]=50;}	//lift claw
 			motor[L_Arm]=motor[R_Arm]=0;
 			startTask(arm);
 		}// end btn 5U
 
-		if(vexRT[Btn5D]==1){		//lift cap for 24" post
+		//lift cap for 24" post
+		if(vexRT[Btn5D]==1){
 			stopTask(arm);
-			while(SensorValue(Arm_Angle) < armCapLow){
+			while(SensorValue(Arm_Angle) < ARM_CAP_LOW){
 				motor[L_Arm]=motor[R_Arm]=50;}	//lift claw
 			motor[L_Arm]=motor[R_Arm]=0;
 			startTask(arm);
-		}//end btn 5D
+		}//end 5D
 
-		//micro arm  movement
-		if(vexRT[Btn7U]==1){	//up
+		/*		MICRO-ARM MOVEMENT */
+		//up
+		if(vexRT[Btn7U]==1){
 			stopTask(arm);
-			motor[L_Arm]=motor[R_Arm]=20;}	//lift claw
+			motor[L_Arm]=motor[R_Arm]=20;	//lift claw
 			wait1Msec(300);
 			motor[L_Arm]=motor[R_Arm]=0;
-			startTask(arm);}
+			startTask(arm);}//end 7U
 
-		if(vexRT[Btn7D]==1){	//down
+		//down
+		if(vexRT[Btn7D]==1){
 			stopTask(arm);
-			motor[L_Arm]=motor[R_Arm]=-5;}	//lift claw
+			motor[L_Arm]=motor[R_Arm]=-5;	//lift claw
 			wait1Msec(300);
 			motor[L_Arm]=motor[R_Arm]=0;
-			startTask(arm);}
+			startTask(arm);}	//end 7D
+
 	}//end while
 }//end liftCap
 
-
-
-task autonomous()
-{
+task autonomous(){
 	tDrive(0,0,0); //timed driving distance: Left power, Right power, Time (ms)
 	eDrive(0,0,0);//encoder driving distance: Left power, Right power, Time (ms)
 }
 
-task usercontrol()
-{
+task usercontrol(){
+	//set-up tasks, sensors etc..
 	startTask(drive);
 	startTask(arm);
 	startTask(liftCap);
 	while (true){
 		if(vexRT[Btn7L]==1){flipCap();}
 
-		//micro-drive
+		/*	MICRO-DRIVE */
 		if(vexRT[Btn8U]==1){//straight
 			stopTask(drive);
 			tDrive(25,25,150);
@@ -219,5 +228,5 @@ task usercontrol()
 			tDrive(30,-30,150);
 			startTask(drive);}
 
-	}//end while
+		}//end while
 }//end main
