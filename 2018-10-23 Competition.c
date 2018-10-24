@@ -28,16 +28,16 @@ int MAX_POWER = 100;						//maximum power to motor - 127 is max
 float DRIVE_SENSITIVITY = 0.5;		//coefficient = decrease joystick sensitivity
 int DEADBAND = 15;							//Joystick seldom 0 when off so this is the value to ignore joystick 'noise' below
 int ARM_POWER = 0;							//power to apply to arm if needed
-float ARM_SENSITIVITY = 0.8;		//slow arm movements
+float ARM_SENSITIVITY = 0.5;		//slow arm movements
 
 //xxxCap() variables - flipArm OK 10-22 (250,50,150,50)
 int flipArmTime = 250;		//time lift arm before drive foward
 int flipArmSpeed = 50;		//power to lift arm
 int flipDriveTime = 150;	//time before driving foward
 int flipDriveSpeed = 50;	//drive power
-int armMax = 2200;
+int armMax = 2100;
 int armCapHigh = 2000;		// TBD - value of Arm_Angle potentioneter for placing high caps
-int armCapLow = 1500;			//TBD - value of Arm_Angle potentioneter for placing high caps
+int armCapLow = 1380;			//TBD - value of Arm_Angle potentioneter for placing high caps
 
 // autonomous driving variables
 int pause1 = 300;
@@ -107,16 +107,17 @@ task drive(){
 task arm(){
 	while(true){
 		//ARM HEIGHT
-		if(abs(vexRT[Ch3])> DEADBAND && SensorValue(Arm_Angle) < armMax)
-		{
+		if(abs(vexRT[Ch3])> DEADBAND && SensorValue(Arm_Angle) < armMax){//limit height
 			motor[L_Arm]=motor[R_Arm]=vexRT[Ch3] * ARM_SENSITIVITY;
 		}
-		else
-		{
+		else if(vexRT[Ch3] < DEADBAND * -1){
+			motor[L_Arm]=motor[R_Arm]=vexRT[Ch3] * (ARM_SENSITIVITY / 4);
+		}
+		else{
 			motor[L_Arm]=motor[R_Arm]=ARM_POWER;
 		}
 
-		if(SensorValue(Arm_Angle) > armCapLow / 4){ //arm is raised (3700 is full down, ~1700 up)
+		if(SensorValue(Arm_Angle) > armCapLow / 4){ //arm is in air - keep from falling
 				ARM_POWER = 10;
 			}
 			else {
@@ -151,21 +152,36 @@ void flipCap(void){
 //position arm for placing cap on 36" post
 task liftCap(){
 	while(true){
-		if(vexRT[Btn7U]==1){
+		if(vexRT[Btn5U]==1){		//lift cap for 36" post
 			stopTask(arm);
 			while(SensorValue(Arm_Angle) < armCapHigh){
-				motor[L_Arm]=motor[R_Arm]=40;}	//lift claw
+				motor[L_Arm]=motor[R_Arm]=50;}	//lift claw
 			motor[L_Arm]=motor[R_Arm]=0;
 			startTask(arm);
-		}//lift claw
+		}// end btn 5U
 
-		if(vexRT[Btn7D]==1){
+		if(vexRT[Btn5D]==1){		//lift cap for 24" post
 			stopTask(arm);
 			while(SensorValue(Arm_Angle) < armCapLow){
-				motor[L_Arm]=motor[R_Arm]=40;}	//lift claw
+				motor[L_Arm]=motor[R_Arm]=50;}	//lift claw
 			motor[L_Arm]=motor[R_Arm]=0;
 			startTask(arm);
-		}//end btn 7d
+		}//end btn 5D
+
+		//micro arm  movement
+		if(vexRT[Btn7U]==1){	//up
+			stopTask(arm);
+			motor[L_Arm]=motor[R_Arm]=20;}	//lift claw
+			wait1Msec(300);
+			motor[L_Arm]=motor[R_Arm]=0;
+			startTask(arm);}
+
+		if(vexRT[Btn7D]==1){	//down
+			stopTask(arm);
+			motor[L_Arm]=motor[R_Arm]=-5;}	//lift claw
+			wait1Msec(300);
+			motor[L_Arm]=motor[R_Arm]=0;
+			startTask(arm);}
 	}//end while
 }//end liftCap
 
@@ -188,19 +204,20 @@ task usercontrol()
 		//micro-drive
 		if(vexRT[Btn8U]==1){//straight
 			stopTask(drive);
-			tDrive(30,30,150);
+			tDrive(25,25,150);
 			startTask(drive);}
 		if(vexRT[Btn8D]==1){	//reverse
 			stopTask(drive);
-			tDrive(-30,-30,150);
+			tDrive(-25,-25,150);
 			startTask(drive);}
 		if(vexRT[Btn8L]==1){	//left
 			stopTask(drive);
-			tDrive(30,30,150);
+			tDrive(-30,30,150);
 			startTask(drive);}
 		if(vexRT[Btn8R]==1){	//right
 			stopTask(drive);
 			tDrive(30,-30,150);
 			startTask(drive);}
+
 	}//end while
 }//end main
