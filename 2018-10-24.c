@@ -1,9 +1,8 @@
-#pragma config(I2C_Usage, I2C1, i2cSensors)
 #pragma config(Sensor, in1,    Arm_Angle,      sensorPotentiometer)
-#pragma config(Sensor, I2C_1,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
-#pragma config(Sensor, I2C_2,  ,               sensorQuadEncoderOnI2CPort,    , AutoAssign )
-#pragma config(Motor,  port2,           L_Front,       tmotorVex393_MC29, openLoop, encoderPort, I2C_1)
-#pragma config(Motor,  port3,           R_Front,       tmotorVex393_MC29, openLoop, reversed, encoderPort, I2C_2)
+#pragma config(Sensor, I2C_1,  LeftEncoder,    sensorNone)
+#pragma config(Sensor, I2C_2,  RightEncoder,   sensorNone)
+#pragma config(Motor,  port2,           L_Front,       tmotorVex393_MC29, openLoop)
+#pragma config(Motor,  port3,           R_Front,       tmotorVex393_MC29, openLoop, reversed)
 #pragma config(Motor,  port4,           L_Arm,         tmotorVex393_MC29, openLoop, reversed)
 #pragma config(Motor,  port6,           L_Rear,        tmotorVex393_MC29, openLoop)
 #pragma config(Motor,  port7,           R_Rear,        tmotorVex393_MC29, openLoop, reversed)
@@ -25,13 +24,14 @@ void pre_auton()	//You must return from this function or the autonomous and user
 int L_POWER = 0;								//left drive power in drive()
 int R_POWER = 0;								//right drive power in drive()
 int MAX_POWER = 100;						//maximum power to motor - 127 is max
-float DRIVE_SENSITIVITY = 0.5;		//coefficient = decrease joystick sensitivity
-int DEADBAND = 15;							//Joystick seldom 0 when off so this is the value to ignore joystick 'noise' below
+float DRIVE_SENSITIVITY = 0.8;		//coefficient = decrease joystick sensitivity
+int DEADBAND = 12;							//Joystick seldom 0 when off so this is the value to ignore joystick 'noise' below
 int ARM_POWER = 0;							//power to apply to arm if needed
-float ARM_SENSITIVITY = 0.5;		//slow arm movements
+float ARM_SENSITIVITY = 0.4;		//slow arm movements
+int HOLD_ARM = 15;
 
 //xxxCap() variables - flipArm OK 10-22 (250,50,150,50)
-int FLIP_ARM_TIME = 250;		//time lift arm before drive foward
+int FLIP_ARM_TIME = 400;		//time lift arm before drive foward
 int FLIP_ARM_SPEED = 50;		//power to lift arm
 int FLIP_DRIVE_TIME = 150;	//time before driving foward
 int FLIP_DRIVE_SPEED = 50;	//drive power
@@ -112,8 +112,8 @@ task arm(){
 		if(vexRT[Ch3]> DEADBAND && SensorValue(Arm_Angle) < ARM_MAX){//limit height
 			motor[L_Arm]=motor[R_Arm]=vexRT[Ch3] * ARM_SENSITIVITY;
 		}
-		else if(vexRT[Ch3] < DEADBAND * -1){
-			motor[L_Arm]=motor[R_Arm]=vexRT[Ch3] * (ARM_SENSITIVITY / 4);
+		else if(vexRT[Ch3] < (DEADBAND * -2)){
+			motor[L_Arm]=motor[R_Arm]=vexRT[Ch3] * ARM_SENSITIVITY/4;
 		}
 		else{
 			motor[L_Arm]=motor[R_Arm]=ARM_POWER;
@@ -121,7 +121,7 @@ task arm(){
 
 		//if arm is in air - keep from falling
 		if(SensorValue(Arm_Angle) > ARM_CAP_LOW / 4){
-			ARM_POWER = 10;
+			ARM_POWER = HOLD_ARM;
 		}
 		else {
 			ARM_POWER = 0;
@@ -132,28 +132,30 @@ task arm(){
 
 //flip cap
 void flipCap(void){
-	//stop tasks that may interfere with actions
-	stopTask(arm);
-	stopTask(drive);
+	if(SensorValue(Arm_Angle)< 300){
+		//stop tasks that may interfere with actions
+		stopTask(arm);
+		stopTask(drive);
 
-	//perform flip by..
-	motor[L_Arm]=motor[R_Arm]=FLIP_ARM_SPEED;	//lift claw
-	wait1Msec(FLIP_ARM_TIME);		//wait
-	motor[L_Front]= motor[L_Rear]=FLIP_DRIVE_SPEED;	//drive forward to push cap
-	motor[R_Front]= motor[R_Rear]=FLIP_DRIVE_SPEED;
-	wait1Msec(FLIP_DRIVE_TIME);	//wait
-	motor[L_Front]= motor[L_Rear]=0;	//stop
-	motor[R_Front]= motor[R_Rear]=0;
-	motor[L_Arm]=motor[R_Arm]=0;
+		//perform flip by..
+		motor[L_Arm]=motor[R_Arm]=FLIP_ARM_SPEED;	//lift claw
+		wait1Msec(FLIP_ARM_TIME);		//wait
+		motor[L_Front]= motor[L_Rear]=FLIP_DRIVE_SPEED;	//drive forward to push cap
+		motor[R_Front]= motor[R_Rear]=FLIP_DRIVE_SPEED;
+		wait1Msec(FLIP_DRIVE_TIME);	//wait
+		motor[L_Front]= motor[L_Rear]=0;	//stop
+		motor[R_Front]= motor[R_Rear]=0;
+		motor[L_Arm]=motor[R_Arm]=0;
 
-	// lower claw TBD (added 10-23)
-	motor[L_Arm]=motor[R_Arm]=FLIP_ARM_SPEED * -0.25 ;	//slowly lower claw
-	wait1Msec((FLIP_ARM_TIME + FLIP_DRIVE_TIME));	//wait - probably too long
-	motor[L_Arm]=motor[R_Arm]=0;
+		// lower claw TBD (added 10-23)
+		motor[L_Arm]=motor[R_Arm]=FLIP_ARM_SPEED * -0.25 ;	//slowly lower claw
+		wait1Msec((FLIP_ARM_TIME + FLIP_DRIVE_TIME));	//wait - probably too long
+		motor[L_Arm]=motor[R_Arm]=0;
 
-	//re-start tasks
-	startTask(arm);
-	startTask(drive);
+		//re-start tasks
+		startTask(arm);
+		startTask(drive);
+	}//end if
 }//end flipCap()
 
 //position arm for placing cap on 36" post
@@ -181,17 +183,17 @@ task liftCap(){
 		//up
 		if(vexRT[Btn7U]==1){
 			stopTask(arm);
-			motor[L_Arm]=motor[R_Arm]=20;	//lift claw
-			wait1Msec(300);
+			motor[L_Arm]=motor[R_Arm]=35;	//lift claw
+			wait1Msec(200);
 			motor[L_Arm]=motor[R_Arm]=0;
 			startTask(arm);}//end 7U
 
 		//down
 		if(vexRT[Btn7D]==1){
 			stopTask(arm);
-			motor[L_Arm]=motor[R_Arm]=-5;	//lift claw
-			wait1Msec(300);
-			motor[L_Arm]=motor[R_Arm]=0;
+			motor[L_Arm]=motor[R_Arm]=-8;	//lift claw
+			wait1Msec(250);
+			motor[L_Arm]=motor[R_Arm]=HOLD_ARM;
 			startTask(arm);}	//end 7D
 
 	}//end while
@@ -204,6 +206,8 @@ task autonomous(){
 
 task usercontrol(){
 	//set-up tasks, sensors etc..
+	resetMotorEncoder(L_Front);
+	resetMotorEncoder(R_Front);
 	startTask(drive);
 	startTask(arm);
 	startTask(liftCap);
