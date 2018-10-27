@@ -1,4 +1,6 @@
+#pragma config(UART_Usage, UART2, uartNotUsed, baudRate4800, IOPins, None, None)
 #pragma config(Sensor, in1,    Arm_Angle,      sensorPotentiometer)
+#pragma config(Sensor, in2,    Selector,       sensorPotentiometer)
 #pragma config(Sensor, I2C_1,  LeftEncoder,    sensorNone)
 #pragma config(Sensor, I2C_2,  RightEncoder,   sensorNone)
 #pragma config(Motor,  port2,           L_Front,       tmotorVex393_MC29, openLoop)
@@ -112,15 +114,18 @@ task arm(){
 		if(vexRT[Ch3]> DEADBAND && SensorValue(Arm_Angle) < ARM_MAX){//limit height
 			motor[L_Arm]=motor[R_Arm]=vexRT[Ch3] * ARM_SENSITIVITY;
 		}
-		else if(vexRT[Ch3] < (DEADBAND * -2)){
+		else if(vexRT[Ch3] < (DEADBAND * -2) && SensorValue(Arm_Angle) < ARM_MAX){
 			motor[L_Arm]=motor[R_Arm]=vexRT[Ch3] * ARM_SENSITIVITY/4;
+		}
+		else if(vexRT[Ch3] < (DEADBAND * -2) && SensorValue(Arm_Angle) > ARM_MAX){
+			motor[L_Arm]=motor[R_Arm]=vexRT[Ch3] * ARM_SENSITIVITY;
 		}
 		else{
 			motor[L_Arm]=motor[R_Arm]=ARM_POWER;
 		}
 
 		//if arm is in air - keep from falling
-		if(SensorValue(Arm_Angle) > ARM_CAP_LOW / 4){
+		if(SensorValue(Arm_Angle) > 250){
 			ARM_POWER = HOLD_ARM;
 		}
 		else {
@@ -164,8 +169,10 @@ task liftCap(){
 		//lift cap for 36" post
 		if(vexRT[Btn5U]==1){
 			stopTask(arm);
-			while(SensorValue(Arm_Angle) < ARM_CAP_HIGH){
+			while(SensorValue(Arm_Angle) < ARM_CAP_HIGH - 500){
 				motor[L_Arm]=motor[R_Arm]=50;}	//lift claw
+			while(SensorValue(Arm_Angle) < ARM_CAP_HIGH){
+				motor[L_Arm]=motor[R_Arm]=40;}	//lift claw
 			motor[L_Arm]=motor[R_Arm]=0;
 			startTask(arm);
 		}// end btn 5U
@@ -199,9 +206,35 @@ task liftCap(){
 	}//end while
 }//end liftCap
 
+void autoA(int direction){  //directi0n = 1 blue, -1 = red side
+/*  Autonomous from Position A 	*/
+
+	//drive to cap on ball
+	tDrive(50,50,1500); //timed driving distance: Left power, Right power, Time (ms)
+
+	//lift cap
+	while(SensorValue(Arm_Angle) < 300){
+				motor[L_Arm]=motor[R_Arm]=45;}	//lift claw
+	motor[L_Arm]=motor[R_Arm]=15;
+
+	//turn left
+	tDrive(-50*direction,50*direction,2000); //timed driving distance: Left power, Right power, Time (ms)
+
+	//lower cap
+	while(SensorValue(Arm_Angle) > 100){
+				motor[L_Arm]=motor[R_Arm]=-50;}	//lift claw
+	motor[L_Arm]=motor[R_Arm]=0;
+
+		//turn left
+	tDrive(-50,-50,2000); //timed driving distance: Left power, Right power, Time (ms)
+}//end autoA
+
 task autonomous(){
-	tDrive(0,0,0); //timed driving distance: Left power, Right power, Time (ms)
-	eDrive(0,0,0);//encoder driving distance: Left power, Right power, Time (ms)
+	if(SensorValue[Selector] <2000){//blue
+		autoA(1);}
+	else{autoA(-1);}//red
+
+//*/ eDrive(0,0,0);//encoder driving distance: Left power, Right power, Time (ms)
 }
 
 task usercontrol(){
