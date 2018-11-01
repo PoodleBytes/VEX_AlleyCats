@@ -22,10 +22,10 @@ void pre_auton()	//You must return from this function or the autonomous and user
 	slaveMotor(R_Rear,R_Front);
 	slaveMotor(L_Rear,L_Front);
 	slaveMotor(R_Arm,L_Arm);
-	bStopTasksBetweenModes = false;
+	bStopTasksBetweenModes = true;
 }
 
-/*				VARIABLES 	*/
+/*				VARIABLES 		*/
 //drive()
 int L_POWER = 0;								//left drive power in drive()
 int R_POWER = 0;								//right drive power in drive()
@@ -175,7 +175,7 @@ task liftCap(){
 			stopTask(arm);
 			while(SensorValue(Arm_Angle) < ARM_CAP_HIGH - 500){
 				motor[L_Arm]=50;}	//lift claw
-			while(SensorValue(Arm_Angle) < ARM_CAP_HIGH){
+			while(SensorValue(Arm_Angle) < ARM_CAP_HIGH){	//slow arm
 				motor[L_Arm]=40;}	//lift claw
 			motor[L_Arm]=0;
 			startTask(arm);
@@ -257,7 +257,7 @@ task usercontrol(){
 	startTask(arm);
 	startTask(liftCap);
 	while (true){
-		if(vexRT[Btn7L]==1){flipCap();}
+		if(vexRT[Btn7L]==1){flipCap();}	//position claw and flip cap
 
 		/*	MICRO-DRIVE */
 		if(vexRT[Btn8U]==1){//straight
