@@ -252,7 +252,10 @@ void autoA(int direction){  //directi0n = 1 blue, -1 = red side
 	motor[L_Arm]=0;
 
 	// backup
-	tDrive(-120,-120,1300); // end of autoA  */
+	tDrive(-120,-120,1300);
+	while(SensorValue(Arm_Angle) < 300){
+				motor[L_Arm]=40;}	//lift claw
+	motor[L_Arm]=10;// end of autoA  */
 }//end autoA
 
 task autonomous(){
