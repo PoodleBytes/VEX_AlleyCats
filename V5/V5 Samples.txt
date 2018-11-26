@@ -1,0 +1,111 @@
+CODE REFERENCE
+https://help.vexcodingstudio.com
+
+/*	CLAWBOT WITH ARCADE CONTROL	*/
+int main() {
+    
+    //Display that the program has started to the screen.
+    Brain.Screen.print("Tank Control Program Started");
+    
+    //Use these variables to set the speed of the arm and claw.
+    int armSpeedPCT = 50;
+    int clawSpeedPCT = 50;
+    
+    while(1) {
+
+        //Drive Control
+        //Set the left and right motor to spin forward using the controller Axis values as the velocity value.
+        //Since we are using a single joystick, we will need to calculate the final volicity for each motor.
+        LeftMotor.spin(vex::directionType::fwd, (Controller1.Axis1.value() + Controller1.Axis2.value())/2, vex::velocityUnits::pct); //(Axis1+Axis2)/2
+        RightMotor.spin(vex::directionType::fwd, (Controller1.Axis1.value() - Controller1.Axis2.value())/2, vex::velocityUnits::pct);//(Axis1-Axis2)/2
+        
+        //Arm Control
+        if(Controller1.ButtonUp.pressing()) { //If button up is pressed...
+            //...Spin the arm motor forward.
+            ArmMotor.spin(vex::directionType::fwd, armSpeedPCT, vex::velocityUnits::pct);
+        }
+        else if(Controller1.ButtonDown.pressing()) { //If the down button is pressed...
+            //...Spin the arm motor backward.
+            ArmMotor.spin(vex::directionType::rev, armSpeedPCT, vex::velocityUnits::pct);
+        }
+        else { //If the the up or down button is not pressed...
+            //...Stop the arm motor.
+            ArmMotor.stop(vex::brakeType::brake);
+        }
+        
+        //Claw Control
+        if(Controller1.ButtonA.pressing()) { //If the A button is pressed...
+            //...Spin the claw motor forward.
+            ClawMotor.spin(vex::directionType::fwd, clawSpeedPCT, vex::velocityUnits::pct);
+        }
+        else if(Controller1.ButtonY.pressing()) { //If the Y button is pressed...
+            //...Spin the claw motor backward.
+            ClawMotor.spin(vex::directionType::rev, clawSpeedPCT, vex::velocityUnits::pct);
+        }
+        else { //If the A or Y button are not pressed...        
+            //...Stop the claw motor.
+            ClawMotor.stop(vex::brakeType::brake);        
+        }
+        
+		vex::task::sleep(20); //Sleep the task for a short amount of time to prevent wasted resources.
+    }
+}
+
+
+/*	DRIVE FOR DISTANCE	*/
+int wheelDiameterCM=6.37;
+int travelTargetCM=20;
+float circumference=(wheelDiameterCM*3.14);
+float degreesToRotate=((360*travelTargetCM)/circumference);
+LeftMotor.setVelocity(50,percent);
+RightMotor.setVelocity(50,percent);
+LeftMotor.startRotateFor(degreesToRotate,degrees);
+RightMotor.rotateFor(degreesToRotate,degrees);
+
+/*	LIMIT SWITCH	*/
+if(Limit1.pressing()) { //If the limit switch is pressed	
+	while(Limit1.pressing()) { //Use a while loop to wait until the limit switch is released.
+		// DO SOMETHING
+		vex::task::sleep(100);//Sleep the task for a short amount of time to prevent wasted resources.
+        } 
+            //Once the limit switch is not pressed, the program will continue.
+}
+
+/*	ROTATE SPECIFIC ANGLE	*/
+//per https://www.vexforum.com/index.php/35762-using-degrees-with-encoders-in-v5
+// false allows other things to happen while moving
+
+Motor1.setStopping(braketype::hold);
+
+if (Controller1.ButtonR1.pressing()) {            
+   Motor1.rotateTo(90, rotationUnits::deg, 40, velocityUnits::pct, false);
+}
+else if (Controller1.ButtonR2.pressing()) {            
+   Motor1.rotateTo(-90, rotationUnits::deg, 40, velocityUnits::pct, false);
+}
+
+/* JR ROTATE SPECIFIC ANGLE II	*/
+int main() {
+    Motor1.setVelocity(80,pct);		//speed
+    Motor1.setMaxTorque(80,pct);	//torque
+    Motor1.setStopping(hold);		//hold position when stopped
+    while(1){  
+        if(Controller1.ButtonA.pressing()) { //If the A button is pressed...
+            //...Spin 90deg forward.
+             Motor1.startRotateFor(90,deg);
+        }
+        else if(Controller1.ButtonY.pressing()) { //If the Y button is pressed...
+            //...Spin the claw motor backward.
+            Motor1.startRotateFor(-90,deg);
+        }
+        else { //If the A or Y button are not pressed...        
+            // nothing to do because startRotateFor automatically applies setStopping mode     
+	   ////Motor1.stop(vex::brakeType::hold); //is normally used here
+        }
+       vex::task::sleep(20);
+    }
+}
+
+/*	END	*/
+	RICHARD RODGERS 
+	600 OLD BETHEL RD 
