@@ -1,11 +1,10 @@
 #pragma config(UART_Usage, UART2, uartNotUsed, baudRate4800, IOPins, None, None)
-#pragma config(I2C_Usage, I2C1, i2cSensors)
 #pragma config(Sensor, in1,    Arm_Angle,      sensorPotentiometer)
 #pragma config(Sensor, in2,    Selector,       sensorPotentiometer)
-#pragma config(Sensor, I2C_1,  LeftEncoder,    sensorQuadEncoderOnI2CPort,    , AutoAssign )
-#pragma config(Sensor, I2C_2,  RightEncoder,   sensorQuadEncoderOnI2CPort,    , AutoAssign )
-#pragma config(Motor,  port2,           L_Front,       tmotorVex393_MC29, openLoop, driveLeft, encoderPort, I2C_1)
-#pragma config(Motor,  port3,           R_Front,       tmotorVex393_MC29, openLoop, reversed, driveRight, encoderPort, I2C_2)
+#pragma config(Sensor, I2C_1,  LeftEncoder,    sensorNone)
+#pragma config(Sensor, I2C_2,  RightEncoder,   sensorNone)
+#pragma config(Motor,  port2,           L_Front,       tmotorVex393_MC29, openLoop, driveLeft)
+#pragma config(Motor,  port3,           R_Front,       tmotorVex393_MC29, openLoop, reversed, driveRight)
 #pragma config(Motor,  port4,           L_Arm,         tmotorVex393_MC29, openLoop, reversed)
 #pragma config(Motor,  port6,           L_Rear,        tmotorVex393_MC29, openLoop)
 #pragma config(Motor,  port7,           R_Rear,        tmotorVex393_MC29, openLoop, reversed)
@@ -202,7 +201,6 @@ task liftCap(){
 	}//end while
 }//end liftCap
 
-
 	/*  autoA() - Autonomous from Position A  	-> cap, lift cap, reverse, turn 90, drop cap, back onto platform, lift claw	*/
 void autoA(int direction){  //directi0n = 1 blue, -1 = red side
 	// UNFOLD CLAW & POSITION SO IT DOESN'T DRAG ON MAT
@@ -243,7 +241,8 @@ void autoA(int direction){  //directi0n = 1 blue, -1 = red side
 		motor[L_Arm]=40;}	//lift claw
 	motor[L_Arm]=10;// end of autoA  */
 }//end autoA
-	/*  autoB() - Autonomous from Position B 	raise claw, -> flag, back to center of platform, turn 90, back onto platform 	*/
+
+/*  autoB() - Autonomous from Position B 	raise claw, -> flag, back to center of platform, turn 90, back onto platform 	*/
 void autoB(int direction){  //directi0n = 1 blue, -1 = red side
 	/*  Autonomous from Position A 	*/
 	// POSITION CLAW
@@ -282,23 +281,19 @@ task autonomous(){
 	//NEED REAL WORLD POT VALUES FOR autoA blue / red autoB blue / red
 	//below assumes autoPot's range is 1000 to 3000 with 2000 being the selector is pointing straight-up (select NO autonomous)
 
-	switch(autoSelect){
-		case autoSelect<=1000	:				//autoB BLUE
-			autoA(1);
-			break;
-		case <1500 && >1000	:		//autoA BLUE
-			autoB(1);
-			break;
-		case >=>2500 && <3000:		//autoA RED
-			autoA(-1);
-			break;
-		case =>3000	:				//autoB RED
-			autoB(-1);
-			break;
-		default:			// NO Autonomous - autoPot in center position
-			break;
-	}//end switch
-}//end autonomous()
+	if(autoSelect <=1000){		//autoB BLUE
+		autoB(1);}
+	else if (autoSelect >1000 && autoSelect <=1700){	//autoA BLUE
+		autoA(1);	}
+	else if (autoSelect >1700 && autoSelect <=2300){	//NO Autonomous
+		return;}
+	else if (autoSelect >2300 && autoSelect <=3000){	//autoA RED
+		autoA(-1);}
+	else if(autoSelect >3000){						//autoB RED
+		autoB(-1);}
+	else{																//NO AUTO
+		return;}//neutral position
+} //end autonomous()
 
 task usercontrol(){
 	//set-up tasks, sensors etc..
