@@ -26,15 +26,15 @@ void pre_auton()	//You must return from this function or the autonomous and user
 
 /*				VARIABLES 	*/
 //AUTOA VARIABLES - Estimated 600mS per foot at FCMS
-int autoA_fwd = 1800;	//time driving to the cap 1800
+int autoA_fwd = 1420;	//time driving to the cap 1800
 int autoA_liftCap = 500;	//how high to lift cap 500
 int autoA_backup = 300;	//how long to backup 300
 int autoA_turn = 1800;	//how long you turn
 int autoA_back2platform	= 1300;	//how long to park on platform
 //AUTOB VARIABLES
-int autoB_liftCap = 500;	//how high to lift claw to hit  low flag
+int autoB_liftArm = 500;	//how high to lift claw to hit  low flag
 int autoB_fwd = 1900;	//time driving to the flag (500Ms/ft)
-int autoB_backup = 300;	//how long to backup to center of platform
+int autoB_backup = 3000;	//how long to backup to center of platform
 int autoB_turn = 1700;	//how long to turn 90 (1700 slightly too far)
 int autoB_back2platform	= 2500;	// 2pt=TBD	4pt=2500 to middle platform w/out crossing line!!!
 
@@ -227,7 +227,7 @@ void autoA(int direction){  //directi0n = 1 blue, -1 = red side
 	tDrive(-50,-50,autoA_backup);	//backup
 
 	//turn
-	tDrive(-65*direction,65*direction,autoA_turn); //timed driving distance: Left power, Right power, Time (ms)
+	tDrive(65*direction,-65*direction,autoA_turn); //timed driving distance: Left power, Right power, Time (ms)
 
 	//lower cap
 	while(SensorValue(Arm_Angle) > Arm_Start){
@@ -248,7 +248,7 @@ void autoB(int direction){  //directi0n = 1 blue, -1 = red side
 	// POSITION CLAW
 	int Arm_Start = SensorValue(Arm_Angle);
 
-	while(SensorValue(Arm_Angle)< 300){
+	while(SensorValue(Arm_Angle)<  autoB_liftArm){
 		motor[L_Arm]=55;	//lift  claw
 	}
 	motor[L_Arm]=10;	//hold claw position
@@ -260,7 +260,7 @@ void autoB(int direction){  //directi0n = 1 blue, -1 = red side
 	tDrive(-50,-50,autoB_backup);
 
 	//turn so rear towards platform
-	tDrive(-65*direction,65*direction,autoB_turn); //timed driving distance: Left power, Right power, Time (ms)
+	tDrive(65*direction,-65*direction,autoB_turn); //timed driving distance: Left power, Right power, Time (ms)
 
 	// backup onto platform
 	tDrive(-120,-120,autoB_back2platform);
