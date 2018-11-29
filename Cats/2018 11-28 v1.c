@@ -21,20 +21,20 @@ void pre_auton()	//You must return from this function or the autonomous and user
 	slaveMotor(R_Rear,R_Front);
 	slaveMotor(L_Rear,L_Front);
 	slaveMotor(R_Arm,L_Arm);
-	bStopTasksBetweenModes = false;
+	bStopTasksBetweenModes = true;
 }
 
 /*				VARIABLES 	*/
 //AUTOA VARIABLES - Estimated 600mS per foot at FCMS
-int autoA_fwd = 1800;	//time driving to the cap 1800
+int autoA_fwd = 1420;	//time driving to the cap 1800
 int autoA_liftCap = 500;	//how high to lift cap 500
 int autoA_backup = 300;	//how long to backup 300
 int autoA_turn = 1800;	//how long you turn
 int autoA_back2platform	= 1300;	//how long to park on platform
 //AUTOB VARIABLES
-int autoB_liftCap = 500;	//how high to lift claw to hit  low flag
+int autoB_liftArm = 500;	//how high to lift claw to hit  low flag
 int autoB_fwd = 1900;	//time driving to the flag (500Ms/ft)
-int autoB_backup = 3050;	//how long to backup to center of platform
+int autoB_backup = 3000;	//how long to backup to center of platform
 int autoB_turn = 1700;	//how long to turn 90 (1700 slightly too far)
 int autoB_back2platform	= 2500;	// 2pt=TBD	4pt=2500 to middle platform w/out crossing line!!!
 
@@ -227,7 +227,7 @@ void autoA(int direction){  //directi0n = 1 blue, -1 = red side
 	tDrive(-50,-50,autoA_backup);	//backup
 
 	//turn
-	tDrive(-65*direction,65*direction,autoA_turn); //timed driving distance: Left power, Right power, Time (ms)
+	tDrive(65*direction,-65*direction,autoA_turn); //timed driving distance: Left power, Right power, Time (ms)
 
 	//lower cap
 	while(SensorValue(Arm_Angle) > Arm_Start){
@@ -247,13 +247,8 @@ void autoB(int direction){  //directi0n = 1 blue, -1 = red side
 	/*  Autonomous from Position A 	*/
 	// POSITION CLAW
 	int Arm_Start = SensorValue(Arm_Angle);
-	while(SensorValue(Arm_Angle)<400){
-		motor[L_Arm]=75;	//lift  claw
-	}
-	while(SensorValue(Arm_Angle)>Arm_Start + 100){
-		motor[L_Arm]=-35;	//lower  claw
-	}
-	while(SensorValue(Arm_Angle)<autoB_liftCap){
+
+	while(SensorValue(Arm_Angle)<  autoB_liftArm){
 		motor[L_Arm]=55;	//lift  claw
 	}
 	motor[L_Arm]=10;	//hold claw position
@@ -265,7 +260,7 @@ void autoB(int direction){  //directi0n = 1 blue, -1 = red side
 	tDrive(-50,-50,autoB_backup);
 
 	//turn so rear towards platform
-	tDrive(-65*direction,65*direction,autoB_turn); //timed driving distance: Left power, Right power, Time (ms)
+	tDrive(65*direction,-65*direction,autoB_turn); //timed driving distance: Left power, Right power, Time (ms)
 
 	// backup onto platform
 	tDrive(-120,-120,autoB_back2platform);
@@ -281,17 +276,17 @@ task autonomous(){
 	//NEED REAL WORLD POT VALUES FOR autoA blue / red autoB blue / red
 	//below assumes autoPot's range is 1000 to 3000 with 2000 being the selector is pointing straight-up (select NO autonomous)
 
-	if(autoSelect <=1000){		//autoB BLUE
-		autoB(1);}
-	else if (autoSelect >1000 && autoSelect <=1700){	//autoA BLUE
-		autoA(1);	}
-	else if (autoSelect >1700 && autoSelect <=2300){	//NO Autonomous
-		return;}
-	else if (autoSelect >2300 && autoSelect <=3000){	//autoA RED
-		autoA(-1);}
-	else if(autoSelect >3000){						//autoB RED
+	if(autoSelect <=450){		//autoB RED
 		autoB(-1);}
-	else{																//NO AUTO
+	else if (autoSelect >450 && autoSelect <=1500){	//autoA RED
+		autoA(-1);}
+	else if (autoSelect >1500 && autoSelect <=2200){	//NO Autonomous
+		return;}
+	else if (autoSelect >2200 && autoSelect <=3000){	//autoA BLUE
+		autoA(1);}
+	else if(autoSelect >3000){						//autoB BLUE
+		autoB(1);}
+	else{															//catch all
 		return;}//neutral position
 } //end autonomous()
 
