@@ -1,11 +1,10 @@
 #pragma config(UART_Usage, UART2, uartNotUsed, baudRate4800, IOPins, None, None)
-#pragma config(I2C_Usage, I2C1, i2cSensors)
 #pragma config(Sensor, in1,    Arm_Angle,      sensorPotentiometer)
 #pragma config(Sensor, in2,    Selector,       sensorPotentiometer)
-#pragma config(Sensor, I2C_1,  LeftEncoder,    sensorQuadEncoderOnI2CPort,    , AutoAssign )
-#pragma config(Sensor, I2C_2,  RightEncoder,   sensorQuadEncoderOnI2CPort,    , AutoAssign )
-#pragma config(Motor,  port2,           L_Front,       tmotorVex393_MC29, openLoop, driveLeft, encoderPort, I2C_1)
-#pragma config(Motor,  port3,           R_Front,       tmotorVex393_MC29, openLoop, reversed, driveRight, encoderPort, I2C_2)
+#pragma config(Sensor, I2C_1,  LeftEncoder,    sensorNone)
+#pragma config(Sensor, I2C_2,  RightEncoder,   sensorNone)
+#pragma config(Motor,  port2,           L_Front,       tmotorVex393_MC29, openLoop, driveLeft)
+#pragma config(Motor,  port3,           R_Front,       tmotorVex393_MC29, openLoop, reversed, driveRight)
 #pragma config(Motor,  port4,           L_Arm,         tmotorVex393_MC29, openLoop, reversed)
 #pragma config(Motor,  port6,           L_Rear,        tmotorVex393_MC29, openLoop)
 #pragma config(Motor,  port7,           R_Rear,        tmotorVex393_MC29, openLoop, reversed)
@@ -17,15 +16,20 @@
 #pragma competitionControl(Competition)	// Select Download method as "competition"
 #include "Vex_Competition_Includes.c"	//do not modify
 
-void pre_auton()	//You must return from this function or the autonomous and usercontrol tasks will not be started.
-{
-	slaveMotor(R_Rear,R_Front);
-	slaveMotor(L_Rear,L_Front);
-	slaveMotor(R_Arm,L_Arm);
-	bStopTasksBetweenModes = false;
-}
-
-
+/*				VARIABLES 	*/
+//CLOCK POSITION: 9 - BLUE B	10:30  - BLUE A		12 - NONE		1:30 RED A		3 RED B
+//AUTOA VARIABLES - Estimated 600mS per foot at FCMS
+int autoA_fwd = 1550;	//time driving to the cap 1800
+int autoA_liftCap = 500;	//how high to lift cap 500
+int autoA_backup = 250;	//11-29 - MADE AUTOa BETTER how long to backup 300
+int autoA_turn = 1800;	//how long you turn
+int autoA_back2platform	= 1300;	//how long to park on platform
+//AUTOB VARIABLES
+int autoB_liftArm = 700;	//how high to lift claw to hit low flag
+int autoB_fwd = 1850;	//time driving to the flag (500Ms/ft)
+int autoB_backup = 3100;	//how long to backup to center of platform
+int autoB_turn = 1800;	//how long to turn 90
+int autoB_back2platform	= 2800;	// 11-30 2800 TOO  AFTER A WHILE OF TESTS, 2500 WORKED EARLIER TRY 2pt=TBD	4pt=2500 to middle platform w/out crossing line!!!
 
 //drive()
 int L_POWER = 0;								//left drive power in drive()
@@ -51,6 +55,13 @@ int DRIVE_PAUSE = 200;
 int BRAKE_TIME = 50;
 
 /*			FUNCTIONS		*/
+void pre_auton()	//You must return from this function or the autonomous and usercontrol tasks will not be started.
+{
+	slaveMotor(R_Rear,R_Front);
+	slaveMotor(L_Rear,L_Front);
+	slaveMotor(R_Arm,L_Arm);
+	bStopTasksBetweenModes = true;
+}
 
 //TIMED DRIVE
 void tDrive(int l, int r, int t){
@@ -190,9 +201,8 @@ task liftCap(){
 	}//end while
 }//end liftCap
 
+/*  autoA() - Autonomous from Position A  	-> cap, lift cap, reverse, turn 90, drop cap, back onto platform, lift claw	*/
 void autoA(int direction){  //directi0n = 1 blue, -1 = red side
-	/*  Autonomous from Position A 	*/
-
 	// UNFOLD CLAW & POSITION SO IT DOESN'T DRAG ON MAT
 	int Arm_Start = SensorValue(Arm_Angle);
 	while(SensorValue(Arm_Angle)<400){
@@ -232,16 +242,63 @@ void autoA(int direction){  //directi0n = 1 blue, -1 = red side
 	motor[L_Arm]=10;// end of autoA  */
 }//end autoA
 
+/*  autoB() - Autonomous from Position B 	raise claw, -> flag, back to center of platform, turn 90, back onto platform 	*/
+void autoB(int direction){  //CLOCK POSITION: 9 - BLUE B	10:30  - BLUE A		12 - NONE		1:30 RED A		3 RED B
+	/*  Autonomous from Position A 	*/
+	// POSITION CLAW
+	while(SensorValue(Arm_Angle)<  autoB_liftArm){
+		motor[L_Arm]=55;	//lift  claw
+	}
+	motor[L_Arm]=10;	//hold claw position
+
+	//drive to flag
+	tDrive(78,70,autoB_fwd); //timed driving distance: Left power, Right power, Time (ms)
+
+	//backup to platform center
+	tDrive(-50,-50,autoB_backup);
+
+	//NEW 11-30 - RAISE CLAW
+	while(SensorValue(Arm_Angle) < ARM_CAP_HIGH){
+		motor[L_Arm]=90;}	//lift claw
+	motor[L_Arm]=10;
+
+	//turn so rear towards platform
+	tDrive(-55*direction,60*direction,autoB_turn); //timed driving distance: Left power, Right power, Time (ms)
+
+	// backup onto platform
+	tDrive(-120,-120,autoB_back2platform);
+
+	//lift arm to chang center of gravity?
+		while(SensorValue(Arm_Angle) < ARM_CAP_HIGH + 150
+			){
+		motor[L_Arm]=90;}	//lift claw
+	motor[L_Arm]=10;
+	//motor[L_Arm]=0;		//shut arm off for testing
+	//motor[L_Arm]=10;	//keep arm position
+}//end autoB
+
+/* 		autonomous()		*/
 task autonomous(){
-	if(SensorValue[Selector] <2000){//blue
+	int autoSelect = SensorValue[Selector];	//read auto potentiometer position  0 2000 blue
+	//NEED REAL WORLD POT VALUES FOR autoA blue / red autoB blue / red
+	//below assumes autoPot's range is 1000 to 3000 with 2000 being the selector is pointing straight-up (select NO autonomous)
+
+	if(autoSelect <=650){		//autoB RED
+		autoB(-1);}
+	else if (autoSelect >650 && autoSelect <=1500){	//autoA RED
 		autoA(1);}
-	else{autoA(-1);}//red
-}
+	else if (autoSelect >1500 && autoSelect <=2200){	//NO Autonomous
+		return;}
+	else if (autoSelect >2200 && autoSelect <=3000){	//autoA BLUE
+		autoA(-1);}
+	else if(autoSelect >3000){						//autoB BLUE
+		autoB(1);}
+	else{															//catch all
+		return;}//neutral position
+} //end autonomous()
 
 task usercontrol(){
 	//set-up tasks, sensors etc..
-	resetMotorEncoder(L_Front);
-	resetMotorEncoder(R_Front);
 	startTask(drive);
 	startTask(arm);
 	startTask(liftCap);
