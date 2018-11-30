@@ -16,17 +16,10 @@
 #pragma competitionControl(Competition)	// Select Download method as "competition"
 #include "Vex_Competition_Includes.c"	//do not modify
 
-void pre_auton()	//You must return from this function or the autonomous and usercontrol tasks will not be started.
-{
-	slaveMotor(R_Rear,R_Front);
-	slaveMotor(L_Rear,L_Front);
-	slaveMotor(R_Arm,L_Arm);
-	bStopTasksBetweenModes = true;
-}
-
 /*				VARIABLES 	*/
+//CLOCK POSITION: 9 - BLUE B	10:30  - BLUE A		12 - NONE		1:30 RED A		3 RED B
 //AUTOA VARIABLES - Estimated 600mS per foot at FCMS
-int autoA_fwd = 1500;	//time driving to the cap 1800
+int autoA_fwd = 1550;	//time driving to the cap 1800
 int autoA_liftCap = 500;	//how high to lift cap 500
 int autoA_backup = 250;	//11-29 - MADE AUTOa BETTER how long to backup 300
 int autoA_turn = 1800;	//how long you turn
@@ -62,6 +55,13 @@ int DRIVE_PAUSE = 200;
 int BRAKE_TIME = 50;
 
 /*			FUNCTIONS		*/
+void pre_auton()	//You must return from this function or the autonomous and usercontrol tasks will not be started.
+{
+	slaveMotor(R_Rear,R_Front);
+	slaveMotor(L_Rear,L_Front);
+	slaveMotor(R_Arm,L_Arm);
+	bStopTasksBetweenModes = true;
+}
 
 //TIMED DRIVE
 void tDrive(int l, int r, int t){
@@ -243,7 +243,7 @@ void autoA(int direction){  //directi0n = 1 blue, -1 = red side
 }//end autoA
 
 /*  autoB() - Autonomous from Position B 	raise claw, -> flag, back to center of platform, turn 90, back onto platform 	*/
-void autoB(int direction){  //directi0n = 1 blue, -1 = red side
+void autoB(int direction){  //CLOCK POSITION: 9 - BLUE B	10:30  - BLUE A		12 - NONE		1:30 RED A		3 RED B
 	/*  Autonomous from Position A 	*/
 	// POSITION CLAW
 	while(SensorValue(Arm_Angle)<  autoB_liftArm){

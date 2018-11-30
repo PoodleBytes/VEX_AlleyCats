@@ -26,17 +26,17 @@ void pre_auton()	//You must return from this function or the autonomous and user
 
 /*				VARIABLES 	*/
 //AUTOA VARIABLES - Estimated 600mS per foot at FCMS
-int autoA_fwd = 1500;	//time driving to the cap 1800
+int autoA_fwd = 1420;	//time driving to the cap 1800
 int autoA_liftCap = 500;	//how high to lift cap 500
-int autoA_backup = 250;	//11-29 - MADE AUTOa BETTER how long to backup 300
+//int autoA_backup = 300;	//how long to backup 300
 int autoA_turn = 1800;	//how long you turn
 int autoA_back2platform	= 1300;	//how long to park on platform
 //AUTOB VARIABLES
-int autoB_liftArm = 700;	//how high to lift claw to hit low flag
+int autoB_liftArm = 500;	//how high to lift claw to hit low flag
 int autoB_fwd = 1850;	//time driving to the flag (500Ms/ft)
-int autoB_backup = 3100;	//how long to backup to center of platform
-int autoB_turn = 1800;	//how long to turn 90
-int autoB_back2platform	= 2800;	// 11-30 2800 TOO  AFTER A WHILE OF TESTS, 2500 WORKED EARLIER TRY 2pt=TBD	4pt=2500 to middle platform w/out crossing line!!!
+int autoB_backup = 2950;	//how long to backup to center of platform
+int autoB_turn = 1550;	//how long to turn 90 (1700 slightly too far)
+int autoB_back2platform	= 2500;	// TRY 2pt=TBD	4pt=2500 to middle platform w/out crossing line!!!
 
 //drive()
 int L_POWER = 0;								//left drive power in drive()
@@ -224,7 +224,7 @@ void autoA(int direction){  //directi0n = 1 blue, -1 = red side
 		motor[L_Arm]=40;}	//lift claw
 	motor[L_Arm]=15;
 
-	tDrive(-50,-50,autoA_backup);	//backup
+	//	tDrive(-50,-50,autoA_backup);	//backup
 
 	//turn
 	tDrive(-65*direction,65*direction,autoA_turn); //timed driving distance: Left power, Right power, Time (ms)
@@ -246,6 +246,8 @@ void autoA(int direction){  //directi0n = 1 blue, -1 = red side
 void autoB(int direction){  //directi0n = 1 blue, -1 = red side
 	/*  Autonomous from Position A 	*/
 	// POSITION CLAW
+	int Arm_Start = SensorValue(Arm_Angle);
+
 	while(SensorValue(Arm_Angle)<  autoB_liftArm){
 		motor[L_Arm]=55;	//lift  claw
 	}
@@ -258,23 +260,24 @@ void autoB(int direction){  //directi0n = 1 blue, -1 = red side
 	tDrive(-50,-50,autoB_backup);
 
 	//NEW 11-30 - RAISE CLAW
-	while(SensorValue(Arm_Angle) < ARM_CAP_HIGH){
+	while(SensorValue(Arm_Angle) < ARM_CAP_HIGH - 750){
 		motor[L_Arm]=90;}	//lift claw
 	motor[L_Arm]=10;
 
 	//turn so rear towards platform
-	tDrive(-55*direction,60*direction,autoB_turn); //timed driving distance: Left power, Right power, Time (ms)
+	tDrive(-65*direction,65*direction,autoB_turn); //timed driving distance: Left power, Right power, Time (ms)
+
+	//NEW 11-30 -- RELAX ARM
+		while(SensorValue(Arm_Angle)>ARM_CAP_LOW){
+		motor[L_Arm]=-35;}	//lower  claw
+
+		motor[L_Arm]=10;
 
 	// backup onto platform
-	tDrive(-120,-120,autoB_back2platform);
+	tDrive(120,120,autoB_back2platform);
 
-	//lift arm to chang center of gravity?
-		while(SensorValue(Arm_Angle) < ARM_CAP_HIGH + 150
-			){
-		motor[L_Arm]=90;}	//lift claw
-	motor[L_Arm]=10;
+	//arm power - keep position (competition?) or shut off (testing)
 	//motor[L_Arm]=0;		//shut arm off for testing
-	//motor[L_Arm]=10;	//keep arm position
 }//end autoB
 
 /* 		autonomous()		*/
@@ -283,22 +286,24 @@ task autonomous(){
 	//NEED REAL WORLD POT VALUES FOR autoA blue / red autoB blue / red
 	//below assumes autoPot's range is 1000 to 3000 with 2000 being the selector is pointing straight-up (select NO autonomous)
 
-	if(autoSelect <=650){		//autoB RED
-		autoB(-1);}
-	else if (autoSelect >650 && autoSelect <=1500){	//autoA RED
+	if(autoSelect <=600){		//autoB BLUE
+		autoB(1);}
+	else if (autoSelect >600 && autoSelect <=1500){	//autoA RED
 		autoA(1);}
 	else if (autoSelect >1500 && autoSelect <=2200){	//NO Autonomous
 		return;}
 	else if (autoSelect >2200 && autoSelect <=3000){	//autoA BLUE
-		autoA(-1);}
-	else if(autoSelect >3000){						//autoB BLUE
-		autoB(1);}
+		autoA(1);}
+	else if(autoSelect >3000){						//autoB RED
+		autoB(-1);}
 	else{															//catch all
 		return;}//neutral position
 } //end autonomous()
 
 task usercontrol(){
 	//set-up tasks, sensors etc..
+	resetMotorEncoder(L_Front);
+	resetMotorEncoder(R_Front);
 	startTask(drive);
 	startTask(arm);
 	startTask(liftCap);
