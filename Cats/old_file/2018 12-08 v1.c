@@ -29,7 +29,7 @@ int autoB_liftArm = 700;	//how high to lift claw to hit low flag
 int autoB_fwd = 1850;	//time driving to the flag (500Ms/ft)
 int autoB_backup = 3100;	//how long to backup to center of platform
 int autoB_turn = 1800;	//how long to turn 90
-int autoB_back2platform	= 2800;	// 11-30 2800 TOO  AFTER A WHILE OF TESTS, 2500 WORKED EARLIER TRY 2pt=TBD	4pt=2500 to middle platform w/out crossing line!!!
+int autoB_back2platform	= 2500;	// 11-30 2800 TOO  AFTER A WHILE OF TESTS, 2500 WORKED EARLIER TRY 2pt=TBD	4pt=2500 to middle platform w/out crossing line!!!
 
 //drive()
 int L_POWER = 0;								//left drive power in drive()
@@ -246,33 +246,33 @@ void autoA(int direction){  //directi0n = 1 blue, -1 = red side
 void autoB(int direction){  //CLOCK POSITION: 9 - BLUE B	10:30  - BLUE A		12 - NONE		1:30 RED A		3 RED B
 	/*  Autonomous from Position A 	*/
 	// POSITION CLAW
-	while(SensorValue(Arm_Angle)<  autoB_liftArm){
+	/*while(SensorValue(Arm_Angle)<  autoB_liftArm){
 		motor[L_Arm]=55;	//lift  claw
 	}
 	motor[L_Arm]=10;	//hold claw position
-
-	//drive to flag
-	tDrive(78,70,autoB_fwd); //timed driving distance: Left power, Right power, Time (ms)
+*/
+	//back to flag
+	tDrive(-78,-70,autoB_fwd); //timed driving distance: Left power, Right power, Time (ms)
 
 	//backup to platform center
-	tDrive(-50,-50,autoB_backup);
+	tDrive(50,50,autoB_backup);
 
 	//NEW 11-30 - RAISE CLAW
-	while(SensorValue(Arm_Angle) < ARM_CAP_HIGH){
-		motor[L_Arm]=90;}	//lift claw
-	motor[L_Arm]=10;
+	//while(SensorValue(Arm_Angle) < ARM_CAP_HIGH){
+	//	motor[L_Arm]=90;}	//lift claw
+	//motor[L_Arm]=10;
 
 	//turn so rear towards platform
-	tDrive(-55*direction,60*direction,autoB_turn); //timed driving distance: Left power, Right power, Time (ms)
+	tDrive(55*direction,-60*direction,autoB_turn); //timed driving distance: Left power, Right power, Time (ms)
 
 	// backup onto platform
-	tDrive(-120,-120,autoB_back2platform);
+	tDrive(-127,-127,autoB_back2platform);
 
 	//lift arm to chang center of gravity?
-		while(SensorValue(Arm_Angle) < ARM_CAP_HIGH + 150
+	/*	while(SensorValue(Arm_Angle) < ARM_CAP_HIGH + 150
 			){
 		motor[L_Arm]=90;}	//lift claw
-	motor[L_Arm]=10;
+	motor[L_Arm]=10;*/
 	//motor[L_Arm]=0;		//shut arm off for testing
 	//motor[L_Arm]=10;	//keep arm position
 }//end autoB
