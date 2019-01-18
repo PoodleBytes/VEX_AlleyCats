@@ -1,0 +1,48 @@
+#include "robot-config.h"
+
+int main() {
+    Brain.Screen.clearScreen();
+    Controller1.Screen.clearScreen();
+    int maxCtl = 0;
+    int curCtl = 0;
+    int maxRPM = 0;
+    int curRPM = 0;
+    float maxTrq = 0.0;
+    float curTrq = 0.0;
+    
+    int clrScr = 0;
+    
+    while(1) {
+        curRPM = Motor1.velocity(velocityUnits::rpm);
+        curRPM = Motor1.velocity(velocityUnits::rpm);
+        curCtl = abs(Controller1.Axis1.value());
+        curTrq = Motor1.torque(torqueUnits::InLb);
+         
+        Motor1.spin(vex::directionType::fwd,Controller1.Axis1.value(),velocityUnits::pct);
+        
+        //ADD IF CURCTL > 80 && MOTOR1.RPM <50 MOTOR2.POWER = MOTOR1.POWER (help acclerate preven gettign stuck if M is binding & )
+        Motor2.spin(vex::directionType::fwd,curRPM,velocityUnits::rpm);
+        
+        if(abs(Controller1.Axis1.value())<5){
+                Brain.Screen.clearScreen();}
+        
+        if(curCtl > maxCtl) maxCtl = curCtl;
+        if(curRPM > maxRPM) maxRPM = curRPM;
+        if(curTrq > maxTrq) maxTrq = curTrq;
+        
+        Brain.Screen.printAt(10,60,"CTLR %3d",curCtl);   
+        Brain.Screen.printAt(110,60,"Max: %d",maxCtl);   
+        Brain.Screen.printAt(10,80,"RPM: %3d",curRPM); 
+        Brain.Screen.printAt(110,80,"Max: %d",maxRPM); 
+        Brain.Screen.printAt(10,100,"TRQ: %2.2f",curTrq); 
+        Brain.Screen.printAt(110,100,"Max: %2.2f",maxTrq); 
+        Controller1.Screen.setCursor(1,1);
+        Controller1.Screen.print("CTLR %3d",curCtl); 
+        Controller1.Screen.setCursor(2,1);
+        Controller1.Screen.print("Max: %d",maxCtl);  
+
+
+        
+       vex::task::sleep(20); //Sleep the task for a short amount of time to prevent wasted resources.  
+    }
+}
