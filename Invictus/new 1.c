@@ -17,6 +17,7 @@
 #include "Vex_Competition_Includes.c"	//do not modify
 
 /*				VARIABLES 	*/
+//CLOCK POSITION: 9 - BLUE B	10:30  - BLUE A		12 - NONE		1:30 RED A		3 RED B
 //AUTOA VARIABLES - Estimated 600mS per foot at FCMS
 int autoA_fwd = 1550;	//time driving to the cap 1800
 int autoA_liftCap = 500;	//how high to lift cap 500
@@ -25,10 +26,10 @@ int autoA_turn = 1800;	//how long you turn
 int autoA_back2platform	= 1300;	//how long to park on platform
 //AUTOB VARIABLES
 int autoB_liftArm = 700;	//how high to lift claw to hit low flag
-int autoB_fwd = 800;	//time driving to the flag (500Ms/ft)
+int autoB_fwd = 1850;	//time driving to the flag (500Ms/ft)
 int autoB_backup = 3100;	//how long to backup to center of platform
-int autoB_turn = 2050;	//how long to turn 90
-int autoB_back2platform	= 2200;	// back to platform
+int autoB_turn = 1800;	//how long to turn 90
+int autoB_back2platform	= 2500;	// 11-30 2800 TOO  AFTER A WHILE OF TESTS, 2500 WORKED EARLIER TRY 2pt=TBD	4pt=2500 to middle platform w/out crossing line!!!
 
 //drive()
 int L_POWER = 0;								//left drive power in drive()
@@ -242,20 +243,45 @@ void autoA(int direction){  //directi0n = 1 blue, -1 = red side
 }//end autoA
 
 /*  autoB() - Autonomous from Position B 	raise claw, -> flag, back to center of platform, turn 90, back onto platform 	*/
-void autoB(int direction){ 
+void autoB(int direction){  //CLOCK POSITION: 9 - BLUE B	10:30  - BLUE A		12 - NONE		1:30 RED A		3 RED B
 	/*  Autonomous from Position A 	*/
-	tDrive(50,50,autoB_fwd);
-	tDrive(50*direction,-50*direction,autoB_turn);
-		while(SensorValue(Arm_Angle) < 300){
-		motor[L_Arm]=40;}	//lift claw
-	motor[L_Arm]=10;// end of autoA  */
-	tDrive(120,120,autoB_back2platform);
+	// POSITION CLAW
+	/*while(SensorValue(Arm_Angle)<  autoB_liftArm){
+		motor[L_Arm]=55;	//lift  claw
+	}
+	motor[L_Arm]=10;	//hold claw position
+*/
+	//back to flag
+	tDrive(-78,-70,autoB_fwd); //timed driving distance: Left power, Right power, Time (ms)
 
+	//backup to platform center
+	tDrive(50,50,autoB_backup);
+
+	//NEW 11-30 - RAISE CLAW
+	//while(SensorValue(Arm_Angle) < ARM_CAP_HIGH){
+	//	motor[L_Arm]=90;}	//lift claw
+	//motor[L_Arm]=10;
+
+	//turn so rear towards platform
+	tDrive(55*direction,-60*direction,autoB_turn); //timed driving distance: Left power, Right power, Time (ms)
+
+	// backup onto platform
+	tDrive(-127,-127,autoB_back2platform);
+
+	//lift arm to chang center of gravity?
+	/*	while(SensorValue(Arm_Angle) < ARM_CAP_HIGH + 150
+			){
+		motor[L_Arm]=90;}	//lift claw
+	motor[L_Arm]=10;*/
+	//motor[L_Arm]=0;		//shut arm off for testing
+	//motor[L_Arm]=10;	//keep arm position
 }//end autoB
 
 /* 		autonomous()		*/
 task autonomous(){
-	int autoSelect = SensorValue[Selector];	//read auto potentiometer position  
+	int autoSelect = SensorValue[Selector];	//read auto potentiometer position  0 2000 blue
+	//NEED REAL WORLD POT VALUES FOR autoA blue / red autoB blue / red
+	//below assumes autoPot's range is 1000 to 3000 with 2000 being the selector is pointing straight-up (select NO autonomous)
 
 	if(autoSelect <=650){		//autoB RED
 		autoB(-1);}
