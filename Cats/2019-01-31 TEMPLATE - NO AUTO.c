@@ -16,12 +16,12 @@
 #pragma competitionControl(Competition)	// Select Download method as "competition"
 #include "Vex_Competition_Includes.c"	//do not modify
 
-/*				VARIABLES 	*/
-//AUTOA VARIABLES - Estimated 600mS per foot at FCMS
+/*				VARIABLES (std gearing close to 600mS per foot at 70% power )	*/
+//AUTOA VARIABLES
 
 //AUTOB VARIABLES
 
-//AUTONOMOUS ROUTINE
+//AUTONOMOUS ROUTINES
 void autoA(int direction){}
 
 void autoB(int direction){}
