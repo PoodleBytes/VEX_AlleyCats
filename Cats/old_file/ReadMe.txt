@@ -1,9 +1,6 @@
 2019-02-10
 V5 Programs:
 
-2017-02-10 v1.vex
-	rough copy of Cortex Code
-	displays selected autonomous on controller
 
 read motor values.vex
 	displayS motor encoder readings on controller 
