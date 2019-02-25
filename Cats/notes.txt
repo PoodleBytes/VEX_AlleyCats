@@ -1,0 +1,31 @@
+100	-67
+200	-180
+300	-314
+400	-314
+500	-444
+600	-530
+700	-600
+
+//DECLARE TASK
+int updateScreen();
+
+//AUTO-PRE
+vex::task upScr(updateScreen); //start task which updates controller screen
+upScr.setPriority(1);  //low priority
+
+int updateScreen(){
+    while(1){
+        Controller1.Screen.clearScreen();
+        Controller1.Screen.setCursor(1,1);
+        Controller1.Screen.print("L: %4.1f", LR.rotation(rotationUnits::deg));   
+        Controller1.Screen.setCursor(2,1);
+        Controller1.Screen.print("R: %4.1f",RR.rotation(rotationUnits::deg));           
+        Controller1.Screen.setCursor(3,1);
+        Controller1.Screen.print("A: %4.2f G: %4.2f", LeftArm.rotation(rotationUnits::deg),GrabberArm.rotation(rotationUnits::deg));   
+
+        // don't hog the cpu :)
+        vex::this_thread::sleep_for( 250 );    
+
+        }//end while
+    return 0;
+}//END UPDATE SCREEN
