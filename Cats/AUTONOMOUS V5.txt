@@ -1,0 +1,116 @@
+/*
+	BLUE FLAG 3A - UNTESTED
+*/
+    aArm(30,75);		//lift arm off mat
+    punchBall();		//shoot ball
+    eDrive(50,50,-1300,1300);   //back up to flag
+    eDrive(50,50,650,-650);     //drive to align w/cap
+    eDrive(50,50,550,550);      //*Turn RIGHT 90
+    eDrive(50,50,130,-130);       //Drive to cap
+    eArm(350);                  //lift cap
+    eArm(-175);
+    eDrive(50,50,-550,-550);    //*Turn LEFT 90 degrees
+    eDrive(50,50,1310,-1310);   //backup to platform 
+    eDrive(50,50,525,525);    //*turn RIGHT 90
+    eDrive(75,75,1210,-1210);   //drive onto platform
+
+
+/*
+	RED FLAG 3A - UNTESTED
+*/
+    aArm(30,75);		//lift arm off mat
+    punchBall();		//shoot ball
+    eDrive(50,50,-1300,1300);   //back up to flag
+    eDrive(50,50,650,-650);     //drive to align w/cap
+    eDrive(50,50,-550,-550);      //*Turn LEFT 90
+    eDrive(50,50,130,-130);       //Drive to cap
+    eArm(350);                  //lift cap
+    eArm(-175);
+    eDrive(50,50,550,550);    //*Turn RIGHT 90 degrees
+    eDrive(50,50,1310,-1310);   //backup to platform 
+    eDrive(50,50,-525,-525);    //*turn LEFT 90
+    eDrive(75,75,1210,-1210);   //drive onto platform
+
+
+/*
+	BLUE FLAG 2B
+*/
+    eArm(200);                   
+    aArm(50);
+    eDrive(50,50,-1300,1300);   //back up to flag
+    eDrive(50,50,650,-650);     //drive to align w/cap
+    eDrive(50,50,550,550);      //*Turn RIGHT 90
+    eDrive(50,50,130,-130);       //Drive to cap
+    eArm(350);                  //lift cap
+    eArm(-200);
+    eDrive(50,50,-550,-550);    //*Turn LEFT 90 degrees
+    eDrive(50,50,1310,-1310);   //backup to platform 
+    eDrive(50,50,525,525);    //*turn RIGHT 90
+    eDrive(75,75,1210,-1210);   //drive onto platform
+
+/*
+	RED FLAG 2B
+*/
+    eArm(200);                   //lift arm off mat
+    aArm(50);
+    eDrive(50,50,-1300,1300);   //back up to flag
+    eDrive(50,50,650,-650);     //drive to align w/cap
+    eDrive(50,50,-550,-550);      //*Turn LEFT 90
+    eDrive(50,50,130,-130);       //Drive to cap
+    eArm(350);                  //lift cap
+    eArm(-175);
+    eDrive(50,50,550,550);    //*Turn RIGHT 90 degrees
+    eDrive(50,50,1310,-1310);   //backup to platform 
+    eDrive(50,50,-525,-525);    //*turn LEFT 90
+    eDrive(75,75,1210,-1210);   //drive onto platform
+
+/*
+	BLUE 2B
+	AUTO SET-UP:
+*/
+    eArm(200);                   //lift arm off mat
+    aArm(30);
+    //DRIVE TO CAP 993 -993
+    eDrive(50,50,990, -990);
+    //LIFT CAP  220
+    eArm(200);                   //lift arm off mat
+    //*TURN LEFT  490 490
+    eDrive(50,50,-490, -490);
+    //LOWER CAP
+    aArm(30); 
+    //BACK ONTO PLATFORM 1200
+    eDrive(50,50,-950,950);
+    aArm(200);
+
+/*
+	RED 2B
+*/
+    eArm(200);                   //lift arm off mat
+    aArm(30);
+    //DRIVE TO CAP 993 -993
+    eDrive(50,50,990, -990);
+    //LIFT CAP  220
+    eArm(200);                   //lift arm off mat
+    //*TURN RIGHT  490 490
+    eDrive(50,50,490, 490);
+    //LOWER CAP
+    aArm(30); 
+    //BACK ONTO PLATFORM 1200
+    eDrive(50,50,-900,900);
+    aArm(200);
+
+/*
+	BLUE 2C - CLOVER 
+*/
+   eDrive(50,50,-640,640);
+   eArm(125);
+   eDrive(50,50,500,500);
+   eDrive(70,70,1340,-1340);
+
+/*
+	RED 2C - CLOVER
+*/
+   eDrive(50,50,-640,640);
+   eArm(125);
+   eDrive(50,50,-500,-500);
+   eDrive(70,70,1340,-1340);
