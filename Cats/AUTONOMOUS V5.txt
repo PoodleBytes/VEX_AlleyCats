@@ -7,8 +7,8 @@
     eDrive(50,50,650,-650);     //drive to align w/cap
     eDrive(50,50,550,550);      //*Turn RIGHT 90
     eDrive(50,50,130,-130);       //Drive to cap
-    eArm(350);                  //lift cap
-    eArm(-175);
+    eArm(30,350);                  //lift cap
+    eArm(30,-175);
     eDrive(50,50,-550,-550);    //*Turn LEFT 90 degrees
     eDrive(50,50,1310,-1310);   //backup to platform 
     eDrive(50,50,525,525);    //*turn RIGHT 90
@@ -24,8 +24,8 @@
     eDrive(50,50,650,-650);     //drive to align w/cap
     eDrive(50,50,-550,-550);      //*Turn LEFT 90
     eDrive(50,50,130,-130);       //Drive to cap
-    eArm(350);                  //lift cap
-    eArm(-175);
+    eArm(30,350);                  //lift cap
+    eArm(30,-175);
     eDrive(50,50,550,550);    //*Turn RIGHT 90 degrees
     eDrive(50,50,1310,-1310);   //backup to platform 
     eDrive(50,50,-525,-525);    //*turn LEFT 90

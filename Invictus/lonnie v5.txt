@@ -1,0 +1,230 @@
+#include "robot-config.h"
+
+//Creates a competition object that allows access to Competition methods.
+vex::competition Competition;
+
+//VARIABLES
+double adjSpeed = 0.5;   //adjust drive sensitivity
+double adjGrab = -0.7;   //adjust how much the claw (grabber) folds in relation to arm raise/lowering
+//double inRev = 12.57;    //inches per revolution of 4" tire
+
+//MACRO FUNCTIONS
+int tArm();      //lift arm task
+void eDrive(int, int, double, double);  //DRIVE BY RELATIVE DISTANCE
+void eArm(int, double);     //ARM BY RELATIVE DISTANCE
+void aArm(int, double);     //ARM BY ABSOLUTE DISTANCE
+void eGArm(int, double);    //CLAW/ARM PROPORTIONATE
+void aGrab(int,double);     //CLAW BY ABSOLUTE DISTANCE
+void eGrab(int, double);    //CLAW BY RELATIVE DISTANCE
+//TRICKS
+void liftCap(void);         //LIFT CAP      TBD BTN
+void retractClaw(void);     //FOLD CLAW     LEFT BTN
+void loadBall(void);        //LOAD BALL     UP BTN      BALL IN CLAW, LIFT ARM, WAIT, RESET STRING LENGTH 
+void punchBall(void);       //FIRE BALL(S)  TDB BTN
+void pre_auton(void);       //SETTINGS FOR MOTORS, SCREEN ETC
+/*CONTROLS
+L1 - LOWER CLAW     L2 - RAISE CLAW
+L - FOLD CLAW       UP - LOAD BALL
+TBD LIFT CAP        TBD  PUNCH BALL
+*/ 
+
+void autonomous( void ) {
+
+}//end autonomous
+
+void usercontrol( void ) {
+  // User control code here, inside the loop
+  while (1){
+    
+      //DRIVE
+        LR.spin(directionType::fwd, (Controller1.Axis1.value() + Controller1.Axis2.value())*adjSpeed, velocityUnits::pct);
+        RR.spin(directionType::fwd, (Controller1.Axis1.value() - Controller1.Axis2.value())*adjSpeed, velocityUnits::pct);
+        LF.spin(directionType::fwd, (Controller1.Axis1.value() + Controller1.Axis2.value())*adjSpeed, velocityUnits::pct);
+        RF.spin(directionType::fwd, (Controller1.Axis1.value() - Controller1.Axis2.value())*adjSpeed, velocityUnits::pct);
+  
+      //BUTTONS
+
+    
+        Controller1.Screen.setCursor(1,1);
+        Controller1.Screen.print("arm: %4.1f",LeftArm.rotation(rotationUnits::deg) );
+        Controller1.Screen.setCursor(2,1);
+        Controller1.Screen.print("claw: %4.1f pT: %2.2f",GrabberArm.rotation(rotationUnits::deg));
+        vex::task::sleep(20); //Sleep the task for a short amount of time to prevent wasted resources. 
+  }
+}
+
+// Main will set up the competition functions and callbacks.
+int main() {
+    
+    //Run the pre-autonomous function. 
+    pre_auton();
+    
+    //Set up callbacks for autonomous and driver control periods.
+    Competition.autonomous( autonomous );
+    Competition.drivercontrol( usercontrol );
+
+    //Prevent main from exiting with an infinite loop.                        
+    while(1) {
+      vex::task::sleep(100);//Sleep the task for a short amount of time to prevent wasted resources.
+    } 
+}
+
+void punchBall(void){
+    //LIFT ARM TO CLEAR PLUNGER
+        //ROTATE MOTOR 360 DEG
+        LeftPunch.rotateFor(360,rotationUnits::deg,100,vex::velocityUnits::pct, false);
+        RightPunch.rotateFor(360,rotationUnits::deg,100,vex::velocityUnits::pct);
+        Controller1.Screen.setCursor(3,1);
+        Controller1.Screen.print("Punch: %4.2f ",LeftPunch.torque(torqueUnits::InLb) );
+        //LeftPunch.rotateTo(360,rotationUnits::deg,100,vex::velocityUnits::pct, false);
+        //RightPunch.rotateTo(360,rotationUnits::deg,100,vex::velocityUnits::pct, false);
+        LeftPunch.resetRotation();
+        RightPunch.resetRotation();
+}//end shoot ball
+
+void loadBall(void){
+   aGrab(35,400);
+   aArm(35,350); 
+   vex::task::sleep(700);   //let ball roll down arm
+   aGrab(35,0);
+   aArm(20,0);
+}//end loadBall
+	
+void retractClaw(void){
+    aArm(30,200);
+    aGrab(30,425);
+    aGrab(30,0);
+    aArm(30,20);  
+}//end retClaw
+
+void liftCap(void){
+    LeftArm.setVelocity(25, vex::velocityUnits::pct); 
+    RightArm.setVelocity(25, vex::velocityUnits::pct);
+    LR.setVelocity(50, vex::velocityUnits::pct); 
+    LF.setVelocity(50, vex::velocityUnits::pct);
+    RR.setVelocity(50, vex::velocityUnits::pct);
+    RF.setVelocity(50, vex::velocityUnits::pct);
+    
+    LeftArm.rotateFor(300, vex::rotationUnits::deg, false); //This command must be non blocking.
+    RightArm.rotateFor(300, vex::rotationUnits::deg,false); //This command is blocking so the program will wait here until the right motor is done. 
+    //Rotate the Left and Right Motor for degreesToRotate. 
+    LR.rotateFor(350, vex::rotationUnits::deg, false); //This command must be non blocking.
+    LF.rotateFor(350, vex::rotationUnits::deg, false); //This command must be non blocking.
+    RR.rotateFor(-350, vex::rotationUnits::deg, false); //This command must be non blocking.
+    RF.rotateFor(-350, vex::rotationUnits::deg); //This command is blocking so the program will wait here until the right motor is done. 
+    
+    vex::task::sleep(50);   
+}//end lift cap
+
+int tArm(void){ //ARM & GRABBER CONTROL TASK
+    while(1){
+      if(abs(Controller1.Axis3.value())>40){
+        LeftArm.spin(vex::directionType::fwd, Controller1.Axis3.value()*0.7, vex::velocityUnits::rpm);
+        RightArm.spin(vex::directionType::fwd, Controller1.Axis3.value()*0.7, vex::velocityUnits::rpm);
+        GrabberArm.rotateTo(LeftArm.rotation(rotationUnits::deg)*adjGrab,rotationUnits::deg);
+      }else if(Controller1.ButtonL1.pressing()){
+          eGrab(20,50); 
+      }else if(Controller1.ButtonL2.pressing()){
+          eGrab(20,-50); 
+     // }else if(Controller1.ButtonLeft.pressing()){
+     //     retractClaw();
+      }else if(Controller1.ButtonUp.pressing()){
+          loadBall();
+      }else if(Controller1.ButtonR1.pressing()){
+          aArm(30,75);
+          punchBall();
+          aArm(30,0);
+      }else{
+          LeftArm.stop(brakeType::hold);
+          RightArm.stop(brakeType::hold);
+          GrabberArm.stop(brakeType::hold);
+      }
+      vex::task::sleep(20);
+    }   
+    return 0;
+}//end tArm
+
+void eDrive(int l, int r, double lDeg,double rDeg){  //!!!may have to have seperate degrees for left & right
+    LR.setVelocity(l, vex::velocityUnits::pct); 
+    LF.setVelocity(l, vex::velocityUnits::pct);
+    RR.setVelocity(r, vex::velocityUnits::pct);
+    RF.setVelocity(r, vex::velocityUnits::pct);
+
+    LR.rotateFor(lDeg, vex::rotationUnits::deg, false); //This command must be non blocking.
+    LF.rotateFor(lDeg, vex::rotationUnits::deg, false); //This command must be non blocking.
+    RR.rotateFor(rDeg, vex::rotationUnits::deg, false); //This command must be non blocking.
+    RF.rotateFor(rDeg, vex::rotationUnits::deg); //This command is blocking so the program will wait here until the right motor is done.  
+    vex::task::sleep(50);
+}//end eDrive
+
+void eArm(int s, double deg){
+    LeftArm.setVelocity(s, vex::velocityUnits::pct); 
+    RightArm.setVelocity(s, vex::velocityUnits::pct);
+    
+    LeftArm.rotateFor(deg, vex::rotationUnits::deg, false); //This command must be non blocking.
+    RightArm.rotateFor(deg, vex::rotationUnits::deg); //This command is blocking so the program will wait here until the right motor is done.  
+}//end eArm
+
+void aArm(int s, double deg){
+    LeftArm.setVelocity(s, vex::velocityUnits::pct); 
+    RightArm.setVelocity(s, vex::velocityUnits::pct);
+    
+    LeftArm.rotateTo(deg, vex::rotationUnits::deg, false); //This command must be non blocking.
+    RightArm.rotateTo(deg, vex::rotationUnits::deg); //This command is blocking so the program will wait here until the right motor is done.  
+}//end aArm
+
+void eGArm(int s, double deg){
+    LeftArm.setVelocity(s, vex::velocityUnits::pct); 
+    RightArm.setVelocity(s, vex::velocityUnits::pct);
+    GrabberArm.setVelocity(s*adjGrab, vex::velocityUnits::pct); 
+    
+    GrabberArm.rotateFor(deg, vex::rotationUnits::deg, false);
+    LeftArm.rotateFor(deg, vex::rotationUnits::deg, false); //This command must be non blocking.
+    RightArm.rotateFor(deg, vex::rotationUnits::deg); //This command is blocking so the program will wait here until the right motor is done.  
+    vex::task::sleep(50); 
+}//end aArm
+
+void aGrab(int s,double deg){
+    GrabberArm.setVelocity(s, vex::velocityUnits::pct); 
+    
+    GrabberArm.rotateTo(deg, vex::rotationUnits::deg); //This command is blocking so the program will wait here until the right motor is done.  
+    vex::task::sleep(50); 
+}//end eGrab
+
+void eGrab(int s, double deg){
+    GrabberArm.setVelocity(s, vex::velocityUnits::pct); 
+    
+    GrabberArm.rotateFor(deg, vex::rotationUnits::deg); //This command is blocking so the program will wait here until the right motor is done.  
+    vex::task::sleep(50); 
+}//end eGrab
+  
+void pre_auton(void) {
+
+	LeftArm.setStopping(brakeType::hold);
+	RightArm.setStopping(brakeType::hold);
+    GrabberArm.setStopping(brakeType::hold);
+    LeftPunch.setStopping(brakeType::coast);
+    RightPunch.setStopping(brakeType::coast);
+	LR.setStopping(brakeType::hold);
+	LF.setStopping(brakeType::hold);
+	RR.setStopping(brakeType::hold);
+    RF.setStopping(brakeType::hold);  
+    
+    LeftArm.setMaxTorque(90,percentUnits::pct);
+    RightArm.setMaxTorque(90,percentUnits::pct);
+    GrabberArm.setMaxTorque(90,percentUnits::pct);
+    LeftPunch.setMaxTorque(100,percentUnits::pct);
+    LeftPunch.setMaxTorque(100,percentUnits::pct);
+
+    LR.resetRotation();
+    RR.resetRotation();
+    LeftArm.resetRotation();
+    GrabberArm.resetRotation();
+    LeftPunch.resetRotation();
+    Controller1.Screen.clearScreen();
+    
+    vex::task t(tArm); //start task which updates controller screen
+    t.setPriority(6);  //medium priority
+
+} //end pre_auton
+
