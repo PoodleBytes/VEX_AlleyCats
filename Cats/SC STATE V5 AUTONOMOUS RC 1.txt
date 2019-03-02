@@ -1,5 +1,7 @@
 	/*
 	BLUE FLAG 3A - UNTESTED
+2 from flag
+align close to inner edge so ball shooter & crossbar hit flags
 	*/
     punchBall();		//shoot ball
     eDrive(50,50,-1300,1300);   //back up to flag
@@ -16,6 +18,8 @@
 
     /*
 	RED FLAG 3A - UNTESTED
+2 from flag
+align close to inner edge so ball shooter & crossbar hit flags
     */
     punchBall();		        //shoot ball
     eDrive(50,50,-1300,1300);   //back up to flag
