@@ -1,6 +1,6 @@
 WITH V5 THE MOTOR FUNCTIONS ARE 
 	DISTANCE, SPEED, WAIT FOR COMPLETION
-	eDrive(dist L, dist R, speed L, speed R, wait)
+	rDrive(dist L, dist R, speed L, speed R, wait)
 	
 
 
@@ -9,18 +9,18 @@ WITH V5 THE MOTOR FUNCTIONS ARE
 	BLUE FLAG 3A - GOOD
     */
     punchBall();		        //shoot ball
-    eArm(10,30,0);
-    eDrive(-1350,1350,50,50,1);   //back up to flag
-    eDrive(700,-700,50,50,1);     //drive to align w/cap
-    eDrive(550,550,50,50,1);      //*Turn RIGHT 90**
-    eDrive(75,-75,50,50,1);       //Drive to cap
-    eArm(100,30,1);                  //flip cap
-    //eArm(-50,30,1);          //lower arm
-    eDrive(-550,-550,50,50,1);    //*Turn LEFT 90 degrees
-    eDrive(1310,-1310,50,50,1);   //drive toward platform 
-    eDrive(525,525,50,50,1);    //*turn RIGHT 90
+    rArm(10,30,0);
+    rDrive(-1350,1350,50,50,1);   //back up to flag
+    rDrive(700,-700,50,50,1);     //drive to align w/cap
+    rDrive(550,550,50,50,1);      //*Turn RIGHT 90**
+    rDrive(75,-75,50,50,1);       //Drive to cap
+    rArm(100,30,1);                  //flip cap
+    //rArm(-50,30,1);          //lower arm
+    rDrive(-550,-550,50,50,1);    //*Turn LEFT 90 degrees
+    rDrive(1310,-1310,50,50,1);   //drive toward platform 
+    rDrive(525,525,50,50,1);    //*turn RIGHT 90
     aGrab(425,50,0);      //fold claw
-    eDrive(1300,-1300,75,75,1);   //drive onto platform
+    rDrive(1300,-1300,75,75,1);   //drive onto platform
 
 
 
@@ -28,54 +28,54 @@ WITH V5 THE MOTOR FUNCTIONS ARE
 	RED FLAG 3A - GOOD
     */
     punchBall();		        //shoot ball
-    eArm(10,30,0);
-    eDrive(-1350,1350,50,50,1);   //back up to flag
-    eDrive(700,-700,50,50,1);     //drive to align w/cap
-    eDrive(-550,-550,50,50,1);      //*Turn LEFT 90**
-    eDrive(75,-75,50,50,1);       //Drive to cap
-    eArm(100,30,1);                  //flip cap
-    //eArm(-50,30,1);          //lower arm
-    eDrive(550,550,50,50,1);    //*Turn RIGHT 90 degrees
-    eDrive(1310,-1310,50,50,1);   //drive toward platform 
-    eDrive(-525,-525,50,50,1);    //*turn LEFT 90
+    rArm(10,30,0);
+    rDrive(-1350,1350,50,50,1);   //back up to flag
+    rDrive(700,-700,50,50,1);     //drive to align w/cap
+    rDrive(-550,-550,50,50,1);      //*Turn LEFT 90**
+    rDrive(75,-75,50,50,1);       //Drive to cap
+    rArm(100,30,1);                  //flip cap
+    //rArm(-50,30,1);          //lower arm
+    rDrive(550,550,50,50,1);    //*Turn RIGHT 90 degrees
+    rDrive(1310,-1310,50,50,1);   //drive toward platform 
+    rDrive(-525,-525,50,50,1);    //*turn LEFT 90
     aGrab(425,50,0);      //fold claw
-    eDrive(1300,-1300,75,75,1);   //drive onto platform
+    rDrive(1300,-1300,75,75,1);   //drive onto platform
 
 /*
 	BLUE 2B
 	AUTO SET-UP:
 */
-    eArm(20,50,0);              //lift arm off mat
-    eDrive(990, -990,50,50,1);	//DRIVE TO CAP 993 -993
-    eArm(200,50,1);             //lift CAP
-    eDrive(-490,-490,50,50,1); //*TURN LEFT  490 490
+    rArm(20,50,0);              //lift arm off mat
+    rDrive(990, -990,50,50,1);	//DRIVE TO CAP 993 -993
+    rArm(200,50,1);             //lift CAP
+    rDrive(-490,-490,50,50,1); //*TURN LEFT  490 490
     aArm(30,50,1);     		//LOWER CAP
-    eDrive(-950,950,50,50,0);	//BACK ONTO PLATFORM 1200
+    rDrive(-950,950,50,50,0);	//BACK ONTO PLATFORM 1200
     aArm(200,50,1);
 
 /*
 	RED 2B
 */
-    eArm(20,50,0);              //lift arm off mat
-    eDrive(990, -990,50,50,1);	//DRIVE TO CAP 993 -993
-    eArm(200,50,1);             //lift CAP
-    eDrive(490,490,50,50,1); //*TURN RIGHT 490 490
+    rArm(20,50,0);              //lift arm off mat
+    rDrive(990, -990,50,50,1);	//DRIVE TO CAP 993 -993
+    rArm(200,50,1);             //lift CAP
+    rDrive(490,490,50,50,1); //*TURN RIGHT 490 490
     aArm(30,50,1);     		//LOWER CAP
-    eDrive(-950,950,50,50,0);	//BACK ONTO PLATFORM 1200
+    rDrive(-950,950,50,50,0);	//BACK ONTO PLATFORM 1200
     aArm(200,50,1);
 
 /*
 	BLUE 2C - CLOVER - drive onto platform
 */
-   eDrive(-640,640,50,50,0);	//backup
-   eArm(125,50,1);		//lift arm
-   eDrive(500,500,50,50,1);	//*turn
-   eDrive(1340,-1340,70,70,1);	//go onto platform
+   rDrive(-640,640,50,50,0);	//backup
+   rArm(125,50,1);		//lift arm
+   rDrive(500,500,50,50,1);	//*turn
+   rDrive(1340,-1340,70,70,1);	//go onto platform
 
 /*
 	RED 2C - CLOVER - drive onto platform
 */
-   eDrive(-640,640,50,50,0);	//backup
-   eArm(125,50,1);		//lift arm
-   eDrive(-500,-500,50,50,1);	//*turn
-   eDrive(1340,-1340,70,70,1);	//go onto platform
+   rDrive(-640,640,50,50,0);	//backup
+   rArm(125,50,1);		//lift arm
+   rDrive(-500,-500,50,50,1);	//*turn
+   rDrive(1340,-1340,70,70,1);	//go onto platform
